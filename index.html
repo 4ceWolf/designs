@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Design Gallery — Echo</title>
+<style>
+  :root{ --bg:#0a0a0f; --panel:#13131b; --panel2:#1a1a24; --line:#25252f; --line2:#33333f; --text:#eef0fa; --muted:#8b8fa3; --muted2:#5d6175; --acc:#7c6cff; }
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; margin:0; }
+  body{ background:var(--bg); color:var(--text); overflow:hidden; font:13px/1.4 "Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; -webkit-font-smoothing:antialiased; }
+  button{ font:inherit; color:inherit; background:none; border:none; cursor:pointer; }
+  .app{ display:flex; flex-direction:column; height:100vh; }
+  header{ flex:0 0 auto; display:flex; align-items:center; gap:14px; padding:12px 18px; border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#101017,#0c0c12); }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand .mk{ width:30px; height:30px; border-radius:9px; display:grid; place-items:center; color:#0b0b14; font-weight:800;
+    background:linear-gradient(150deg,var(--acc),#5a96ff); box-shadow:0 6px 16px rgb(124 108 255/.4); }
+  .brand b{ display:block; font-size:13px; } .brand span{ display:block; font-size:9.5px; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted2); }
+  .seg{ display:flex; gap:3px; padding:3px; border-radius:10px; background:var(--panel); border:1px solid var(--line); }
+  .seg button{ padding:6px 11px; border-radius:7px; font-size:11.5px; color:var(--muted); }
+  .seg button.on{ color:#0b0b14; background:linear-gradient(150deg,var(--acc),#5a96ff); }
+  .spacer{ flex:1; }
+  .btn{ padding:7px 13px; border-radius:9px; font-size:11.5px; font-weight:600; background:var(--panel); border:1px solid var(--line); color:var(--text); }
+  .btn:hover{ border-color:var(--line2); }
+  .btn.primary{ color:#0b0b14; background:linear-gradient(150deg,var(--acc),#5a96ff); border-color:transparent; }
+  .body{ flex:1; min-height:0; display:flex; }
+  aside{ width:270px; flex:0 0 270px; border-right:1px solid var(--line); background:#0d0d13; overflow-y:auto; padding:12px; }
+  .grp{ font-size:9.5px; letter-spacing:1.4px; text-transform:uppercase; color:var(--muted2); margin:14px 4px 8px; }
+  .item{ display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:10px; border:1px solid transparent; cursor:pointer; margin-bottom:5px; }
+  .item:hover{ background:var(--panel); border-color:var(--line); }
+  .item.on{ background:var(--panel); border-color:var(--acc); box-shadow:0 0 0 1px var(--acc) inset; }
+  .sw{ display:flex; gap:3px; flex:0 0 auto; }
+  .sw i{ width:12px; height:22px; border-radius:4px; box-shadow:inset 0 0 0 1px rgb(255 255 255/.08); }
+  .item .meta{ min-width:0; }
+  .item b{ display:block; font-size:12.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .item span{ display:block; font-size:10.5px; color:var(--muted2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  main{ flex:1; min-width:0; display:flex; flex-direction:column; background:radial-gradient(80% 60% at 50% 0%,#14141c,#0a0a0f 70%); }
+  .frameWrap{ flex:1; min-height:0; display:flex; justify-content:center; padding:18px; overflow:auto; }
+  .frame{ width:var(--fw,100%); max-width:100%; height:100%; border-radius:14px; overflow:hidden; border:1px solid var(--line); background:#000; box-shadow:0 30px 80px rgb(0 0 0/.6); }
+  iframe{ width:100%; height:100%; border:none; display:block; background:#000; }
+  .empty{ display:grid; place-items:center; height:100%; color:var(--muted2); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand"><span class="mk">◈</span><div><b>Design Gallery</b><span>Echo · preview selector</span></div></div>
+    <div class="seg" id="device">
+      <button data-w="100%" class="on">Fit</button>
+      <button data-w="1280px">Desktop</button>
+      <button data-w="920px">Tablet</button>
+      <button data-w="430px">Phone</button>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn" id="reload">Reload</button>
+    <button class="btn primary" id="open">Open in tab ↗</button>
+  </header>
+  <div class="body">
+    <aside id="list"></aside>
+    <main>
+      <div class="frameWrap"><div class="frame" id="frame"><div class="empty">Pick a design on the left.</div></div></div>
+    </main>
+  </div>
+</div>
+
+<script>
+  // swatches: [bg, accent, text]
+  var DESIGNS = [
+    { file: "aura-echo.html",             name: "★ Echo · Aura (all documented features)", theme: "Apple / Claude × full Echo UI", sw: ["#0a0a0c", "#0a84ff", "#5e5ce6"] },
+    { file: "aura.html",                  name: "Aura · polished + depth (dark/light)", theme: "Apple / Claude × Signature", sw: ["#0a0a0c", "#0a84ff", "#f5f5f7"] },
+    { file: "orbit.html",                 name: "Orbit · radial carousel", theme: "paradigm",           sw: ["#05060a", "#2ad4ff", "#eaf0ff"] },
+    { file: "tape.html",                  name: "Tape · cassette deck",   theme: "skeuomorphic",       sw: ["#26262c", "#ffb347", "#e8e2d4"] },
+    { file: "wave.html",                  name: "Wave · waveform interface", theme: "no chrome",       sw: ["#04050a", "#2ad4ff", "#eef4ff"] },
+    { file: "news.html",                  name: "The Echo · newspaper",   theme: "editorial print",    sw: ["#e7e3d6", "#8a1414", "#15140f"] },
+    { file: "scope.html",                 name: "Scope · CRT monitor",    theme: "terminal",           sw: ["#020403", "#8dffb0", "#8dffb0"] },
+    { file: "reel.html",                  name: "Reel · full-bleed scroll", theme: "feed",             sw: ["#050506", "#e2372f", "#ffffff"] },
+    { file: "signature.html",             name: "★ Signature (recommended)", theme: "Echo · depth instrument", sw: ["#08090f", "#2ad4ff", "#eaf0ff"] },
+    { file: "hero-lovable.html",          name: "Hero · Now Playing",    theme: "Lovable Editorial Red", sw: ["#0a0a0b", "#e2372f", "#f4f4f5"] },
+    { file: "browse-brutalist.html",      name: "Browse · Library",      theme: "Brutalist Paper",       sw: ["#e9e6dd", "#ff5a00", "#111111"] },
+    { file: "stats-blueprint.html",       name: "Stats · Analytics",     theme: "Blueprint",             sw: ["#0c1a2b", "#4aa3ff", "#d6e9ff"] },
+    { file: "immersive-cyber.html",       name: "Immersive · Player",    theme: "Cyber Neon",            sw: ["#05040a", "#ff3df0", "#eae6ff"] },
+    { file: "signal-terminal.html",       name: "Signal · Rack",         theme: "Terminal Green",        sw: ["#080c08", "#46e05a", "#c6f7cd"] },
+    { file: "album-echodark.html",        name: "Album · Detail",        theme: "Echo Dark Glass",       sw: ["#07070c", "#8b7cff", "#eef0fa"] },
+    { file: "dashboard-sunset.html",      name: "Dashboard · Grid",      theme: "Sunset Neon",           sw: ["#170d1f", "#ff6b9d", "#fdeaf6"] },
+    { file: "compact-mono.html",          name: "Compact · Mini",        theme: "Mono Slate",            sw: ["#111112", "#ededf0", "#ededf0"] },
+    { file: "settings-highcontrast.html", name: "Settings · Toggles",    theme: "High Contrast",         sw: ["#000000", "#ffe100", "#ffffff"] },
+    { file: "article-paper.html",         name: "Article · Editorial",   theme: "Paper Light",           sw: ["#f4f1ea", "#5b5bf0", "#1a1a1a"] },
+    { file: "depth-orb.html",             name: "Depth · Orb",           theme: "Echo Dark Glass",       sw: ["#07070c", "#8b7cff", "#eef0fa"] },
+    { file: "depth-blob.html",            name: "Depth · Blob",          theme: "Sunset Neon",           sw: ["#170d1f", "#ff6b9d", "#fdeaf6"] },
+    { file: "depth-vinyl.html",           name: "Depth · Vinyl",         theme: "Terminal Green",        sw: ["#080c08", "#46e05a", "#c6f7cd"] },
+    { file: "depth-mixed.html",           name: "Depth · Mixed",         theme: "Blueprint",             sw: ["#0c1a2b", "#4aa3ff", "#d6e9ff"] },
+    { file: "immersive-neon.html",        name: "Immersive · Neon",      theme: "Neon Dual",             sw: ["#04070a", "#2ad4ff", "#e6faff"] },
+    { file: "immersive-neon-vinyl.html",  name: "Neon · Vinyl",          theme: "Neon Dual",             sw: ["#04070a", "#2ad4ff", "#e6faff"] },
+    { file: "immersive-neon-mixed.html",  name: "Neon · Mixed",          theme: "Neon Dual",             sw: ["#04070a", "#2ad4ff", "#e6faff"] },
+    { file: "mashup-soft.html",           name: "Mashup · Soft UI",      theme: "Neumorphic",            sw: ["#e8ebf2", "#5b5bf0", "#2b2f45"] },
+    { file: "mashup-hud.html",            name: "Mashup · Glass HUD",    theme: "Glass HUD",             sw: ["#060b16", "#2ad4ff", "#dcecff"] },
+    { file: "mashup-wove.html",           name: "Mashup · WOVE",         theme: "WOVE Minimal",          sw: ["#f2f1ed", "#111111", "#111111"] },
+    { file: "mashup-crypto.html",         name: "Mashup · Crypto",       theme: "Light + Soft",          sw: ["#eef0f6", "#5b5bf0", "#14162a"] },
+    { file: "__sep__" },
+    { file: "../strata/index.html",        name: "Strata (studio)",     theme: "generative art",        sw: ["#08080b", "#8b7cff", "#eceef5"] },
+    { file: "../ui-studio/index.html",    name: "UI Studio (editor)",    theme: "build your own",        sw: ["#0b0b0f", "#7c6cff", "#eceef5"] },
+    { file: "../echo/design/viz-lab.html",   name: "Viz Lab (Echo)",     theme: "data-viz sandbox",      sw: ["#07070c", "#8b7cff", "#eef0fa"] },
+    { file: "../echo/design/hero-lovable.html", name: "Hero (original)", theme: "Lovable reproduction", sw: ["#0a0a0b", "#e2372f", "#f4f4f5"] }
+  ];
+
+  var list = document.getElementById("list");
+  var frame = document.getElementById("frame");
+  var current = null;
+
+  DESIGNS.forEach(function (d) {
+    if (d.file === "__sep__") { var s = document.createElement("div"); s.className = "grp"; s.textContent = "Tools & earlier"; list.appendChild(s); return; }
+    var it = document.createElement("div"); it.className = "item"; it.setAttribute("data-file", d.file);
+    it.innerHTML = '<span class="sw"><i style="background:' + d.sw[0] + '"></i><i style="background:' + d.sw[1] + '"></i><i style="background:' + d.sw[2] + '"></i></span>' +
+      '<span class="meta"><b>' + d.name + '</b><span>' + d.theme + '</span></span>';
+    it.addEventListener("click", function () { select(d.file); });
+    list.appendChild(it);
+  });
+
+  function select(file) {
+    current = file;
+    Array.prototype.forEach.call(list.querySelectorAll(".item"), function (x) { x.classList.toggle("on", x.getAttribute("data-file") === file); });
+    frame.innerHTML = '<iframe src="' + file + '" title="preview"></iframe>';
+  }
+
+  document.getElementById("device").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    Array.prototype.forEach.call(this.querySelectorAll("button"), function (x) { x.classList.remove("on"); });
+    b.classList.add("on");
+    frame.style.width = b.getAttribute("data-w");
+  });
+  document.getElementById("reload").addEventListener("click", function () { if (current) select(current); });
+  document.getElementById("open").addEventListener("click", function () { if (current) window.open(current, "_blank"); });
+
+  // keyboard nav
+  document.addEventListener("keydown", function (e) {
+    var items = Array.prototype.slice.call(list.querySelectorAll(".item"));
+    var idx = items.map(function (x) { return x.getAttribute("data-file"); }).indexOf(current);
+    if (e.key === "ArrowDown" && idx < items.length - 1) { e.preventDefault(); select(items[idx + 1].getAttribute("data-file")); }
+    if (e.key === "ArrowUp" && idx > 0) { e.preventDefault(); select(items[idx - 1].getAttribute("data-file")); }
+  });
+
+  // auto-select first
+  select(DESIGNS[0].file);
+</script>
+</body>
+</html>

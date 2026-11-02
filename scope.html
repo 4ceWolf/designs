@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Scope — CRT monitor</title>
+<style>
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; margin:0; }
+  body{ background:#020403; color:#8dffb0; overflow:hidden; font:13px/1.5 "JetBrains Mono","SFMono-Regular",ui-monospace,monospace;
+    text-shadow:0 0 6px rgba(80,255,140,.55); }
+  canvas{ position:fixed; inset:0; width:100%; height:100%; }
+  .grid{ position:fixed; inset:0; pointer-events:none; opacity:.25;
+    background-image:linear-gradient(rgba(80,255,140,.25) 1px,transparent 1px),linear-gradient(90deg,rgba(80,255,140,.25) 1px,transparent 1px);
+    background-size:40px 40px; }
+  .ui{ position:fixed; inset:0; pointer-events:none; padding:26px 30px; display:flex; flex-direction:column; justify-content:space-between; }
+  .top{ display:flex; justify-content:space-between; align-items:flex-start; }
+  .title{ font-size:11px; letter-spacing:4px; text-transform:uppercase; color:#4fbf78; }
+  .big{ font-size:34px; font-weight:700; letter-spacing:1px; margin-top:4px; text-shadow:0 0 14px rgba(80,255,140,.7); }
+  .readout{ text-align:right; font-size:11px; color:#4fbf78; }
+  .readout b{ color:#8dffb0; }
+  .bottom{ display:flex; justify-content:space-between; align-items:flex-end; }
+  .log{ font-size:11px; color:#3f9f63; }
+  .log b{ color:#8dffb0; }
+  .time{ font-size:40px; font-weight:700; letter-spacing:2px; }
+  .cursor{ display:inline-block; width:10px; height:16px; background:#8dffb0; vertical-align:-2px; animation:blink 1s steps(1) infinite; margin-left:6px; }
+  @keyframes blink{ 50%{ opacity:0; } }
+  .scan{ position:fixed; inset:0; pointer-events:none; background:repeating-linear-gradient(0deg,rgba(0,0,0,.35) 0 1px,transparent 1px 3px); }
+  .vig{ position:fixed; inset:0; pointer-events:none; background:radial-gradient(120% 100% at 50% 50%,transparent 55%,rgba(0,0,0,.85)); }
+  .flick{ position:fixed; inset:0; pointer-events:none; background:rgba(80,255,140,.02); animation:flick 4s steps(2) infinite; }
+  @keyframes flick{ 0%,97%{ opacity:.4; } 98%{ opacity:.9; } 100%{ opacity:.4; } }
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div class="grid"></div>
+<div class="ui">
+  <div class="top">
+    <div>
+      <div class="title">Echo · Oscilloscope</div>
+      <div class="big" id="title">RED THREAD</div>
+      <div style="font-size:12px;color:#4fbf78" id="artist">MIRA VALE // FORMS OF SILENCE</div>
+    </div>
+    <div class="readout">
+      CH-A <b>44.1 kHz</b><br/>
+      BIT <b>24</b> · GAIN <b>-6.0 dB</b><br/>
+      DSP <b>CONCERT HALL</b><br/>
+      <span id="stat">▶ RUN</span>
+    </div>
+  </div>
+  <div class="bottom">
+    <div class="log">
+      <div>&gt; stream locked <b>ok</b></div>
+      <div>&gt; depth mask <b>cached</b></div>
+      <div>&gt; waveform <b>unlocking</b> <span id="pct">0%</span></div>
+      <div>&gt; awaiting input<span class="cursor"></span></div>
+    </div>
+    <div class="time"><span id="cur">0:00</span></div>
+  </div>
+</div>
+<div class="scan"></div><div class="vig"></div><div class="flick"></div>
+<script>
+(function(){
+  "use strict";
+  var cv=document.getElementById("cv"), ctx=cv.getContext("2d");
+  function hash(n){ var s=Math.sin(n*127.1+311.7)*43758.5453; return s-Math.floor(s); }
+  var NB=64, spec=[]; for(var i=0;i<NB;i++) spec.push(0.2+hash(i*3.3)*0.8);
+  var dur=258000, pos=0, t0=performance.now();
+  function resize(){ var dpr=Math.min(2,window.devicePixelRatio||1); cv.width=innerWidth*dpr; cv.height=innerHeight*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); }
+  addEventListener("resize",resize); resize();
+  var cur=document.getElementById("cur"), pct=document.getElementById("pct"), stat=document.getElementById("stat");
+  function frame(ts){
+    requestAnimationFrame(frame);
+    var dt=Math.min(48,ts-(frame._p||ts)); frame._p=ts;
+    pos+=dt*16; if(pos>dur) pos=0;
+    var w=innerWidth,h=innerHeight,mid=h*0.42,t=ts/1000,prog=pos/dur;
+    ctx.clearRect(0,0,w,h);
+    /* centre trace */
+    ctx.lineWidth=2; ctx.strokeStyle="rgba(141,255,176,.9)"; ctx.shadowColor="rgba(80,255,140,.9)"; ctx.shadowBlur=12;
+    ctx.beginPath();
+    for(var x=0;x<=w;x+=3){
+      var u=x/w, y=mid + Math.sin(u*10+t*2.2)*h*0.06 + Math.sin(u*23+t*1.3)*h*0.025 + Math.sin(u*3.1+t*0.7)*h*0.05;
+      if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    /* travelling dot */
+    var dx=(t*0.13%1)*w, dy=mid + Math.sin((dx/w)*10+t*2.2)*h*0.06 + Math.sin((dx/w)*23+t*1.3)*h*0.025 + Math.sin((dx/w)*3.1+t*0.7)*h*0.05;
+    ctx.fillStyle="#d6ffe6"; ctx.beginPath(); ctx.arc(dx,dy,4,0,7); ctx.fill();
+    /* spectrum traces */
+    var bw=w/NB;
+    for(var i=0;i<NB;i++){
+      var v=spec[i]*(0.6+0.4*Math.sin(t*3+i*0.4));
+      var bh=v*h*0.22, x2=i*bw+bw*0.5;
+      var played=(i/NB)<=prog;
+      ctx.strokeStyle=played?"rgba(141,255,176,.85)":"rgba(80,255,140,.28)";
+      ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(x2,h); ctx.lineTo(x2,h-bh); ctx.stroke();
+    }
+    var s=Math.floor(pos/1000),m=Math.floor(s/60);
+    cur.textContent=m+":"+String(s%60).padStart(2,"0");
+    pct.textContent=Math.round(prog*100)+"%";
+    if(Math.floor(ts/900)%2===0){ stat.textContent = Math.floor(ts/700)%2 ? "▶ RUN" : "◉ REC"; }
+    ctx.shadowBlur=0;
+  }
+  resize(); frame(performance.now());
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1845 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Signature — Echo design</title>
+<style>
+.export-root{
+  --accent:hsl(77 88% 58%);
+  --accent-rgb:189 242 54;
+  --accent-soft:hsl(77 88% 58% / .16);
+  --accent-line:hsl(77 88% 58% / .42);
+  --accent-glow:hsl(77 88% 58% / .5);
+  --bg:#08090f; --bg2:#0b0d16; --panel:#0e1119; --panel2:#141826; --well:#06070c;
+  --line:#1c2230; --line2:#2a3346; --text:#eaf0ff; --muted:#8b97b3; --muted2:#5b657e;
+  --r:14px; --gap:16px; --font:"Inter","SF Pro Display",system-ui,sans-serif;
+  --dk:1.15;
+  --sh-key:0 calc(2px*var(--dk)) calc(4px*var(--dk)) rgb(0 0 0/.45);
+  --sh-amb:0 calc(10px*var(--dk)) calc(28px*var(--dk)) rgb(0 0 0/.5);
+  --sh-far:0 calc(30px*var(--dk)) calc(70px*var(--dk)) rgb(0 0 0/.55);
+  --hl:inset 0 1px 0 rgb(255 255 255/.09);
+  --hl2:inset 0 1px 0 rgb(255 255 255/.16);
+  --shade:inset 0 -1px 0 rgb(0 0 0/.5);
+  --well-in:inset 0 calc(2px*var(--dk)) calc(7px*var(--dk)) rgb(0 0 0/.7),inset 0 calc(-1px*var(--dk)) 0 rgb(255 255 255/.04);
+}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:var(--font)}
+.export-root{height:100vh;overflow:auto}
+</style></head>
+<body><div id="export-root" class="export-root"></div>
+<script>/* UI Studio — theme presets + token → CSS. No build step. */
+(function () {
+  "use strict";
+
+  var presets = {
+    "echo-dark": {
+      label: "Echo · Dark Glass",
+      accent: { mode: "dynamic", hue: 258, sat: 70, light: 64 },
+      tokens: {
+        bg: "#07070c", bg2: "#0b0b14", panel: "#12121c", panel2: "#171726", well: "#08080e",
+        line: "#22222f", line2: "#31313f", text: "#eef0fa", muted: "#9a9db6", muted2: "#6b6e88",
+        radius: 18, gap: 16, depth: 2, font: '"Inter","SF Pro Display",system-ui,sans-serif'
+      }
+    },
+    "lovable-red": {
+      label: "Lovable · Editorial Red",
+      accent: { mode: "fixed", hue: 2, sat: 76, light: 54 },
+      tokens: {
+        bg: "#0a0a0b", bg2: "#0c0c0d", panel: "#111112", panel2: "#161617", well: "#080808",
+        line: "#212124", line2: "#2c2c30", text: "#f4f4f5", muted: "#8b8b90", muted2: "#5e5e63",
+        radius: 16, gap: 22, depth: 1, font: '"Inter","SF Pro Display",system-ui,sans-serif'
+      }
+    },
+    "oled": {
+      label: "OLED Black",
+      accent: { mode: "dynamic", hue: 200, sat: 72, light: 60 },
+      tokens: {
+        bg: "#000000", bg2: "#000000", panel: "#0a0a0d", panel2: "#101015", well: "#000000",
+        line: "#1a1a1f", line2: "#26262d", text: "#f2f2f5", muted: "#8a8a95", muted2: "#5c5c66",
+        radius: 16, gap: 16, depth: 2, font: '"Inter","SF Pro Display",system-ui,sans-serif'
+      }
+    },
+    "light": {
+      label: "Light Technical",
+      accent: { mode: "dynamic", hue: 220, sat: 68, light: 50 },
+      tokens: {
+        bg: "#eef0f6", bg2: "#f7f8fc", panel: "#ffffff", panel2: "#ffffff", well: "#e6e8f0",
+        line: "#dfe1ea", line2: "#cfd2de", text: "#14162a", muted: "#565a78", muted2: "#83869e",
+        radius: 14, gap: 16, depth: 1, font: '"Inter","SF Pro Display",system-ui,sans-serif'
+      }
+    },
+    "nord": {
+      label: "Nord",
+      accent: { mode: "dynamic", hue: 193, sat: 60, light: 62 },
+      tokens: {
+        bg: "#2e3440", bg2: "#2b303b", panel: "#3b4252", panel2: "#434c5e", well: "#272c36",
+        line: "#4c566a", line2: "#5b677e", text: "#eceff4", muted: "#a8b1c2", muted2: "#7c8699",
+        radius: 12, gap: 16, depth: 1, font: '"Inter","SF Pro Display",system-ui,sans-serif'
+      }
+    },
+    "brutalist": {
+      label: "Brutalist Paper",
+      accent: { mode: "fixed", hue: 22, sat: 100, light: 50 },
+      tokens: {
+        bg: "#e9e6dd", bg2: "#efede6", panel: "#fbfaf6", panel2: "#ffffff", well: "#dedbd0",
+        line: "#111111", line2: "#111111", text: "#111111", muted: "#4a4a44", muted2: "#6b6b62",
+        radius: 2, gap: 18, depth: 0, font: '"Inter","SF Pro Display",system-ui,sans-serif'
+      }
+    },
+    "terminal": {
+      label: "Terminal Green",
+      accent: { mode: "fixed", hue: 130, sat: 72, light: 58 },
+      tokens: {
+        bg: "#080c08", bg2: "#0a100a", panel: "#0e160e", panel2: "#122012", well: "#060a06",
+        line: "#1c2e1c", line2: "#2a442a", text: "#c6f7cd", muted: "#5f8f66", muted2: "#3f5c44",
+        radius: 4, gap: 14, depth: 0, font: '"JetBrains Mono","SFMono-Regular",ui-monospace,monospace'
+      }
+    },
+    "blueprint": {
+      label: "Blueprint",
+      accent: { mode: "custom", hue: 210, sat: 84, light: 60 },
+      tokens: {
+        bg: "#0c1a2b", bg2: "#0e2038", panel: "#102842", panel2: "#14314f", well: "#091523",
+        line: "#1e4066", line2: "#2a5a8a", text: "#d6e9ff", muted: "#7ea6cc", muted2: "#557da3",
+        radius: 2, gap: 16, depth: 1, font: '"Inter","SF Pro Display",system-ui,sans-serif'
+      }
+    },
+    "sunset": {
+      label: "Sunset Neon",
+      accent: { mode: "custom", hue: 330, sat: 84, light: 64 },
+      tokens: {
+        bg: "#170d1f", bg2: "#1d1129", panel: "#241433", panel2: "#2d1a40", well: "#120a19",
+        line: "#3a2152", line2: "#4d2c6b", text: "#fdeaf6", muted: "#c093d4", muted2: "#8a669e",
+        radius: 22, gap: 18, depth: 2, font: '"Inter","SF Pro Display",system-ui,sans-serif'
+      }
+    },
+    "mono": {
+      label: "Mono Slate",
+      accent: { mode: "fixed", hue: 0, sat: 0, light: 96 },
+      tokens: {
+        bg: "#111112", bg2: "#141415", panel: "#1a1a1c", panel2: "#202023", well: "#0d0d0e",
+        line: "#2a2a2e", line2: "#3a3a40", text: "#ededf0", muted: "#8a8a90", muted2: "#606066",
+        radius: 14, gap: 16, depth: 1, font: '"Inter","SF Pro Display",system-ui,sans-serif'
+      }
+    },
+    "cyber": {
+      label: "Cyber Neon",
+      accent: { mode: "custom", hue: 300, sat: 90, light: 62 },
+      tokens: {
+        bg: "#05040a", bg2: "#080610", panel: "#0c0a16", panel2: "#120e22", well: "#040308",
+        line: "#241a44", line2: "#3a2a66", text: "#eae6ff", muted: "#9a8fd0", muted2: "#6a5fa0",
+        radius: 6, gap: 16, depth: 2, font: '"Inter","SF Pro Display",system-ui,sans-serif'
+      }
+    },
+    "paper": {
+      label: "Paper Light",
+      accent: { mode: "custom", hue: 245, sat: 66, light: 56 },
+      tokens: {
+        bg: "#f4f1ea", bg2: "#faf8f3", panel: "#ffffff", panel2: "#ffffff", well: "#ece8de",
+        line: "#e4e0d4", line2: "#d3cebf", text: "#1a1a1a", muted: "#6b6b60", muted2: "#96968a",
+        radius: 18, gap: 18, depth: 1, font: '"Inter","SF Pro Display",system-ui,sans-serif'
+      }
+    },
+    "high-contrast": {
+      label: "High Contrast",
+      accent: { mode: "fixed", hue: 52, sat: 100, light: 55 },
+      tokens: {
+        bg: "#000000", bg2: "#000000", panel: "#000000", panel2: "#0a0a0a", well: "#000000",
+        line: "#ffffff", line2: "#ffffff", text: "#ffffff", muted: "#c8c8c8", muted2: "#a0a0a0",
+        radius: 0, gap: 16, depth: 0, font: '"Inter","SF Pro Display",system-ui,sans-serif'
+      }
+    },
+    "neon": {
+      label: "Neon Dual",
+      accent: { mode: "custom", hue: 186, sat: 95, light: 58 },
+      tokens: {
+        bg: "#04070a", bg2: "#060b12", panel: "#0a121c", panel2: "#0f1a28", well: "#030608",
+        line: "#123044", line2: "#1d4a66", text: "#e6faff", muted: "#7fb3c8", muted2: "#4f7a8f",
+        radius: 6, gap: 16, depth: 2, font: '"Inter","SF Pro Display",system-ui,sans-serif'
+      }
+    },
+    "soft": {
+      label: "Soft UI (Neumorphic)",
+      accent: { mode: "fixed", hue: 243, sat: 75, light: 58 },
+      tokens: {
+        bg: "#e8ebf2", bg2: "#eef1f7", panel: "#e8ebf2", panel2: "#eef1f7", well: "#dde1ea",
+        line: "#d9dde8", line2: "#c9cedc", text: "#2b2f45", muted: "#6b7089", muted2: "#9298ad",
+        radius: 22, gap: 20, depth: 0, font: '"Inter","SF Pro Display",system-ui,sans-serif'
+      }
+    },
+    "hud": {
+      label: "Glass HUD",
+      accent: { mode: "custom", hue: 196, sat: 92, light: 60 },
+      tokens: {
+        bg: "#060b16", bg2: "#0a1222", panel: "#0d1728", panel2: "#122036", well: "#050a12",
+        line: "#1b3550", line2: "#27507a", text: "#dcecff", muted: "#7fa3c8", muted2: "#4d6f92",
+        radius: 14, gap: 16, depth: 2, font: '"Inter","SF Pro Display",system-ui,sans-serif'
+      }
+    },
+    "wove": {
+      label: "WOVE Minimal",
+      accent: { mode: "fixed", hue: 0, sat: 0, light: 8 },
+      tokens: {
+        bg: "#f2f1ed", bg2: "#f7f6f3", panel: "#f2f1ed", panel2: "#ffffff", well: "#e7e6e1",
+        line: "#dcdbd5", line2: "#c9c8c2", text: "#111111", muted: "#6b6b66", muted2: "#9a9a94",
+        radius: 2, gap: 26, depth: 0, font: '"Inter","SF Pro Display",system-ui,sans-serif'
+      }
+    },
+    "signature": {
+      label: "Signature (recommended)",
+      accent: { mode: "dynamic", hue: 196, sat: 88, light: 58 },
+      tokens: {
+        bg: "#08090f", bg2: "#0b0d16", panel: "#0e1119", panel2: "#141826", well: "#06070c",
+        line: "#1c2230", line2: "#2a3346", text: "#eaf0ff", muted: "#8b97b3", muted2: "#5b657e",
+        radius: 14, gap: 16, depth: 2, font: '"Inter","SF Pro Display",system-ui,sans-serif'
+      }
+    }
+  };
+
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]; }); }
+
+  /* tokensToCss(tokens, accentVars, selector) -> scoped custom-property block */
+  function tokensToCss(t, av, sel) {
+    var dk = [0.35, 0.7, 1.15, 1.7][Math.max(0, Math.min(3, t.depth || 0))];
+    return (sel || ":root") + "{\n" +
+      "  --accent:" + av.css + ";\n" +
+      "  --accent-rgb:" + av.rgb + ";\n" +
+      "  --accent-soft:" + av.soft + ";\n" +
+      "  --accent-line:" + av.line + ";\n" +
+      "  --accent-glow:" + av.glow + ";\n" +
+      "  --bg:" + t.bg + "; --bg2:" + t.bg2 + "; --panel:" + t.panel + "; --panel2:" + t.panel2 + "; --well:" + t.well + ";\n" +
+      "  --line:" + t.line + "; --line2:" + t.line2 + "; --text:" + t.text + "; --muted:" + t.muted + "; --muted2:" + t.muted2 + ";\n" +
+      "  --r:" + t.radius + "px; --gap:" + t.gap + "px; --font:" + t.font + ";\n" +
+      "  --dk:" + dk + ";\n" +
+      "  --sh-key:0 calc(2px*var(--dk)) calc(4px*var(--dk)) rgb(0 0 0/.45);\n" +
+      "  --sh-amb:0 calc(10px*var(--dk)) calc(28px*var(--dk)) rgb(0 0 0/.5);\n" +
+      "  --sh-far:0 calc(30px*var(--dk)) calc(70px*var(--dk)) rgb(0 0 0/.55);\n" +
+      "  --hl:inset 0 1px 0 rgb(255 255 255/.09);\n" +
+      "  --hl2:inset 0 1px 0 rgb(255 255 255/.16);\n" +
+      "  --shade:inset 0 -1px 0 rgb(0 0 0/.5);\n" +
+      "  --well-in:inset 0 calc(2px*var(--dk)) calc(7px*var(--dk)) rgb(0 0 0/.7),inset 0 calc(-1px*var(--dk)) 0 rgb(255 255 255/.04);\n" +
+      "}\n";
+  }
+
+  window.UIThemes = { presets: presets, tokensToCss: tokensToCss, esc: esc };
+})();
+</script>
+<script>/* UI Studio — core runtime. Shared by the editor AND exported mockups. */
+(function () {
+  "use strict";
+
+  /* ------------------------------------------------------------------ *
+   *  helpers
+   * ------------------------------------------------------------------ */
+  function hash(n) { var s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); }
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function fmt(ms) { ms = Math.max(0, ms || 0); var s = Math.floor(ms / 1000), m = Math.floor(s / 60); return m + ":" + String(s % 60).padStart(2, "0"); }
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]); }); }
+  function hslRgb(h, s, l) {
+    h = ((h % 360) + 360) % 360; s /= 100; l /= 100;
+    var q = l < .5 ? l * (1 + s) : l + s - l * s, p = 2 * l - q;
+    function c(x) { x = x < 0 ? x + 1 : x > 1 ? x - 1 : x; if (x < 1 / 6) return p + (q - p) * 6 * x; if (x < 1 / 2) return q; if (x < 2 / 3) return p + (q - p) * (2 / 3 - x) * 6; return p; }
+    return Math.round(c(h / 360 + 1 / 3) * 255) + " " + Math.round(c(h / 360) * 255) + " " + Math.round(c(h / 360 - 1 / 3) * 255);
+  }
+
+  /* ------------------------------------------------------------------ *
+   *  sample data
+   * ------------------------------------------------------------------ */
+  var defaultData = {
+    now: { title: "Red Thread", artist: "Mira Vale", album: "Forms of Silence · 2026", seed: 3, duration: 258000 },
+    tracks: [
+      { title: "Red Thread", artist: "Mira Vale", album: "Forms of Silence", seed: 3, duration: 258, plays: 42 },
+      { title: "Afterimage", artist: "North Index", album: "Intervals", seed: 11, duration: 222, plays: 33 },
+      { title: "Still Water", artist: "Ana Lune", album: "Soft Machines", seed: 19, duration: 306, plays: 24 },
+      { title: "Pale Distance", artist: "Common Field", album: "Contour Lines", seed: 7, duration: 271, plays: 18 },
+      { title: "Intervals", artist: "North Index", album: "Intervals", seed: 23, duration: 341, plays: 15 },
+      { title: "Soft Machines", artist: "Ana Lune", album: "Soft Machines", seed: 29, duration: 288, plays: 12 },
+      { title: "Contour Lines", artist: "Common Field", album: "Contour Lines", seed: 13, duration: 254, plays: 9 },
+      { title: "Quiet Sequence", artist: "Mira Vale", album: "Forms of Silence", seed: 17, duration: 198, plays: 7 }
+    ],
+    albums: [
+      { title: "Forms of Silence", artist: "Mira Vale", seed: 3, year: 2026 },
+      { title: "Intervals", artist: "North Index", seed: 11, year: 2025 },
+      { title: "Soft Machines", artist: "Ana Lune", seed: 19, year: 2026 },
+      { title: "Contour Lines", artist: "Common Field", seed: 7, year: 2024 }
+    ],
+    moods: [
+      { name: "Ambient", albums: 12, hue: 2 },
+      { name: "Electronic", albums: 19, hue: 176 },
+      { name: "Dream pop", albums: 26, hue: 45 },
+      { name: "Instrumental", albums: 33, hue: 205 }
+    ],
+    stats: { hours: "38.4", tracks: "624", albums: "86", artists: "54", delta: "+12% from August", discoveries: "47 were new discoveries" }
+  };
+
+  /* ------------------------------------------------------------------ *
+   *  album art (procedural — stands in for real covers)
+   * ------------------------------------------------------------------ */
+  var ART = [
+    ["#ff5a4d", "#7a0f12", "#1a0304"], ["#3aa7c9", "#0d2a33", "#040a0c"],
+    ["#ff8a3d", "#7a1f0a", "#160402"], ["#b9c4ff", "#2a2f55", "#070812"],
+    ["#5ad1a0", "#0d3327", "#03100c"], ["#e07be0", "#3a1040", "#0c0310"],
+    ["#7bd0ff", "#0d2a44", "#040a12"], ["#f2b657", "#5a3a0a", "#140d02"]
+  ];
+  function art(seed) {
+    var h = hash(seed * 1.31 + 0.7);
+    var c = ART[Math.floor(h * ART.length) % ART.length];
+    return "radial-gradient(65% 80% at 28% 18%," + c[0] + ",transparent 62%)," +
+      "radial-gradient(60% 70% at 76% 74%," + c[1] + ",transparent 64%)," +
+      "conic-gradient(from " + Math.floor(h * 360) + "deg at 50% 50%," + c[2] + "," + c[1] + "," + c[2] + "," + c[0] + "," + c[2] + ")";
+  }
+  function albumHue(seed) { return Math.floor(hash(seed * 2.13) * 360); }
+
+  /* ------------------------------------------------------------------ *
+   *  accent resolution (dynamic | custom | fixed)
+   * ------------------------------------------------------------------ */
+  function accentFor(seed, state) {
+    var a = (state && state.accent) || { mode: "dynamic", hue: 258, sat: 70, light: 64 };
+    var h = a.mode === "dynamic" ? albumHue(seed) : a.hue;
+    var s = a.sat == null ? 70 : a.sat, l = a.light == null ? 64 : a.light;
+    return {
+      h: h, s: s, l: l,
+      css: "hsl(" + h + " " + s + "% " + l + "%)",
+      rgb: hslRgb(h, s, l),
+      soft: "hsl(" + h + " " + s + "% " + l + "% / .16)",
+      line: "hsl(" + h + " " + s + "% " + l + "% / .42)",
+      glow: "hsl(" + h + " " + s + "% " + l + "% / .5)"
+    };
+  }
+
+  /* ------------------------------------------------------------------ *
+   *  charts
+   * ------------------------------------------------------------------ */
+  function fit(c) {
+    var dpr = Math.min(2, window.devicePixelRatio || 1), r = c.getBoundingClientRect();
+    if (c.width !== Math.round(r.width * dpr) || c.height !== Math.round(r.height * dpr)) { c.width = Math.max(1, Math.round(r.width * dpr)); c.height = Math.max(1, Math.round(r.height * dpr)); }
+    return { w: r.width, h: r.height, dpr: dpr };
+  }
+  function ctx2(c) { var f = fit(c), x = c.getContext("2d"); x.setTransform(f.dpr, 0, 0, f.dpr, 0, 0); x.clearRect(0, 0, f.w, f.h); return { ctx: x, w: f.w, h: f.h }; }
+
+  var charts = {
+    spectrum: function (c, bands, acc) {
+      if (!c) return; var o = ctx2(c), x = o.ctx, w = o.w, h = o.h;
+      var n = bands.length, gap = 2, bw = (w - gap * (n - 1)) / n;
+      for (var i = 0; i < n; i++) {
+        var v = bands[i], bh = Math.max(2, v * h * .82), bx = i * (bw + gap), by = h - bh;
+        var g = x.createLinearGradient(0, by, 0, h);
+        g.addColorStop(0, "hsl(" + acc.h + " " + acc.s + "% " + (acc.l + 8) + "% / .98)");
+        g.addColorStop(1, "hsl(" + acc.h + " " + acc.s + "% " + acc.l + "% / .3)");
+        x.fillStyle = g; x.fillRect(bx, by, bw, bh);
+        x.fillStyle = "rgb(255 255 255 / .5)"; x.fillRect(bx, by, bw, 1.5);
+      }
+    },
+    waveform: function (c, seed, progress, acc) {
+      if (!c) return; var o = ctx2(c), x = o.ctx, w = o.w, h = o.h, mid = h / 2;
+      var bars = Math.max(30, Math.floor(w / 4));
+      for (var i = 0; i < bars; i++) {
+        var bx = i * (w / bars), xr = i / bars;
+        var a = hash(i * .7 + seed) * .6 + hash(i * .23 + seed * 2) * .4;
+        var env = Math.sin(Math.PI * xr) * .55 + .45, ah = Math.max(1.5, a * env * (h * .44));
+        var played = xr <= progress, g = x.createLinearGradient(0, mid - ah, 0, mid + ah);
+        if (played) { g.addColorStop(0, "hsl(" + acc.h + " " + acc.s + "% " + (acc.l + 10) + "%)"); g.addColorStop(1, "hsl(" + acc.h + " " + acc.s + "% " + acc.l + "%)"); }
+        else { g.addColorStop(0, "rgb(255 255 255 / .28)"); g.addColorStop(1, "rgb(255 255 255 / .16)"); }
+        x.fillStyle = g; x.fillRect(bx, mid - ah, Math.max(1.4, (w / bars) * .55), ah * 2);
+      }
+    },
+    bars: function (c, values, acc) {
+      if (!c) return; var o = ctx2(c), x = o.ctx, w = o.w, h = o.h;
+      var max = Math.max.apply(null, values) || 1, n = values.length, gap = Math.max(6, w * .02), bw = (w - gap * (n - 1)) / n;
+      for (var i = 0; i < n; i++) {
+        var bh = values[i] / max * (h * .86), bx = i * (bw + gap), by = h - bh, r = Math.min(6, bw / 3);
+        var g = x.createLinearGradient(0, by, 0, h);
+        g.addColorStop(0, "hsl(" + acc.h + " " + acc.s + "% " + (acc.l + 6) + "%)"); g.addColorStop(1, "hsl(" + acc.h + " " + acc.s + "% " + (acc.l - 16) + "%)");
+        x.fillStyle = g; x.beginPath(); x.moveTo(bx + r, by); x.arcTo(bx + bw, by, bx + bw, h, r); x.lineTo(bx + bw, h); x.lineTo(bx, h); x.arcTo(bx, by, bx + bw, by, r); x.closePath(); x.fill();
+      }
+    },
+    line: function (c, values, seeds, acc) {
+      if (!c) return; var o = ctx2(c), x = o.ctx, w = o.w, h = o.h, n = values.length, pts = [];
+      for (var i = 0; i < n; i++) pts.push([i / (n - 1) * w, h - values[i] * h * .82 - 4]);
+      for (var j = 0; j < n - 1; j++) {
+        var hue = seeds ? albumHue(seeds[j % seeds.length]) : acc.h;
+        x.beginPath(); x.moveTo(pts[j][0], pts[j][1]); x.lineTo(pts[j + 1][0], pts[j + 1][1]);
+        x.strokeStyle = "hsl(" + hue + " 72% 62%)"; x.lineWidth = 3; x.lineCap = "round"; x.shadowColor = "hsl(" + hue + " 72% 62% / .7)"; x.shadowBlur = 10; x.stroke();
+      }
+      x.shadowBlur = 0; x.beginPath(); pts.forEach(function (p, i) { return i ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1]); });
+      x.lineTo(w, h); x.lineTo(0, h); x.closePath();
+      var g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, "hsl(" + acc.h + " " + acc.s + "% 60% / .35)"); g.addColorStop(1, "hsl(" + acc.h + " " + acc.s + "% 60% / 0)");
+      x.fillStyle = g; x.fill();
+    },
+    heat: function (c, opts, acc) {
+      if (!c) return; var o = ctx2(c), x = o.ctx, w = o.w, h = o.h;
+      var cols = opts.cols || 7, rows = opts.rows || 8, gap = 4, cw = (w - gap * (cols - 1)) / cols, ch = (h - gap * (rows - 1)) / rows;
+      for (var r = 0; r < rows; r++) for (var col = 0; col < cols; col++) {
+        var seed = r * 17 + col * 5 + 2.5, v = hash(seed), hue = opts.artColour ? albumHue(seed) : acc.h;
+        var a = .1 + v * .85, bx = col * (cw + gap), by = r * (ch + gap), rr = Math.min(4, ch / 3);
+        x.fillStyle = "hsl(" + hue + " 68% " + (34 + v * 22) + "% / " + a.toFixed(2) + ")";
+        x.beginPath(); x.moveTo(bx + rr, by); x.arcTo(bx + cw, by, bx + cw, by + ch, rr); x.arcTo(bx + cw, by + ch, bx, by + ch, rr); x.arcTo(bx, by + ch, bx, by, rr); x.arcTo(bx, by, bx + cw, by, rr); x.closePath(); x.fill();
+        x.strokeStyle = "rgb(255 255 255 / .05)"; x.stroke();
+      }
+    }
+  };
+
+  /* rings -> SVG string (multi-metric concentric) */
+  function ringsSvg(metrics, acc, size) {
+    size = size || 200; var cx = 100, cy = 100, out = '<svg viewBox="0 0 200 200" width="' + size + '" height="' + size + '">';
+    metrics.forEach(function (m, i) {
+      var r = 86 - i * 20, c = 2 * Math.PI * r, frac = clamp(m.value / m.max, 0, 1), col = m.colour || "hsl(" + ((acc.h + i * 40) % 360) + " 72% 62%)";
+      out += '<circle cx="100" cy="100" r="' + r + '" fill="none" stroke="rgb(0 0 0 / .5)" stroke-width="11"/>';
+      out += '<circle cx="100" cy="100" r="' + r + '" fill="none" stroke="rgb(255 255 255 / .06)" stroke-width="11"/>';
+      out += '<circle cx="100" cy="100" r="' + r + '" fill="none" stroke="' + col + '" stroke-width="11" stroke-linecap="round" transform="rotate(-90 100 100)" stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + (c * (1 - frac)).toFixed(1) + '" style="filter:drop-shadow(0 0 4px ' + col + ')"/>';
+    });
+    out += '</svg>'; return out;
+  }
+  function ringSvg(progress, acc, stroke, size) {
+    stroke = stroke || 5; size = size || 120; var c = 2 * Math.PI * 44;
+    return '<svg viewBox="0 0 100 100" width="' + size + '" height="' + size + '">' +
+      '<circle cx="50" cy="50" r="44" fill="none" stroke="rgb(0 0 0 / .5)" stroke-width="' + stroke + '"/>' +
+      '<circle cx="50" cy="50" r="44" fill="none" stroke="rgb(255 255 255 / .07)" stroke-width="' + stroke + '"/>' +
+      '<circle cx="50" cy="50" r="44" fill="none" stroke="' + acc.css + '" stroke-width="' + stroke + '" stroke-linecap="round" transform="rotate(-90 50 50)" stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + (c * (1 - progress)).toFixed(1) + '" style="filter:drop-shadow(0 0 5px ' + acc.glow + ')"/>' +
+      '</svg>';
+  }
+  function wfBars(n, acc) { var s = ""; for (var i = 0; i < n; i++) s += '<i style="height:' + (4 + hash(i * 1.7) * 15).toFixed(0) + 'px;background:' + acc.css + '"></i>'; return s; }
+
+  /* ------------------------------------------------------------------ *
+   *  block registry
+   * ------------------------------------------------------------------ */
+  var blocks = {};
+  function register(type, def) { blocks[type] = def; def.type = type; }
+
+  /* ------------------------------------------------------------------ *
+   *  global animation loop
+   * ------------------------------------------------------------------ */
+  var anims = [];
+  var NB = 48, bands = new Float32Array(NB), target = new Float32Array(NB), peak = new Float32Array(NB);
+  var started = false, t0 = 0, pos = 0, dur = 258000, playing = true, trackSeed = 3;
+  function registerAnim(el, kind, opts) { anims.push({ el: el, kind: kind, opts: opts || {} }); ensureLoop(); }
+  function clearAnims() { anims = []; }
+  function ensureLoop() {
+    if (started) return; started = true; t0 = performance.now();
+    for (var i = 0; i < NB; i++) { bands[i] = .2; }
+    requestAnimationFrame(loop);
+  }
+  function loop(ts) {
+    requestAnimationFrame(loop);
+    var t = (ts - t0) / 1000, beat = .75 + .25 * Math.exp(-((t % .46)) * 7);
+    for (var i = 0; i < NB; i++) {
+      var x = i / (NB - 1), env = Math.pow(1 - x, .72) * .92 + .06;
+      var wob = .5 + .5 * Math.sin(t * (2.1 + i * .17) + i * 1.7), gr = .55 + .45 * hash(i * 3.3 + Math.floor(t * 6));
+      target[i] = clamp(env * wob * gr * beat * (i < 4 ? 1.15 : 1), .02, 1);
+      bands[i] = lerp(bands[i], target[i], .32);
+      peak[i] = Math.max(peak[i] - .018, bands[i]);
+    }
+    if (playing) { pos += 16 * 8; if (pos >= dur) pos = 0; }
+    anims.forEach(function (a) {
+      if (!a.el || !a.el.isConnected) return;
+      if (a.kind === "spectrum") charts.spectrum(a.el, bands, a.opts.acc);
+      else if (a.kind === "wave") charts.waveform(a.el, a.opts.seed, pos / dur, a.opts.acc);
+      else if (a.kind === "vu") { var lvl = 0; for (var k = 0; k < NB; k++) lvl += bands[k]; lvl /= NB; a.opts.onDraw && a.opts.onDraw(lvl); }
+      else if (a.kind === "spine") a.opts.onDraw && a.opts.onDraw(bands);
+    });
+  }
+  function setPlaying(v) { playing = v; }
+  function setNow(seed, d) { trackSeed = seed; if (d) dur = d; }
+
+  /* ------------------------------------------------------------------ *
+   *  render
+   * ------------------------------------------------------------------ */
+  function ctxFor(state) { return { state: state, tokens: state.tokens, accentFor: function (s) { return accentFor(s, state); }, art: art, albumHue: albumHue, fmt: fmt, esc: esc, data: state.data, wfBars: wfBars, ringSvg: ringSvg, ringsSvg: ringsSvg, charts: charts, registerAnim: registerAnim }; }
+
+  function shellHtml(state, ctx) {
+    var L = state.layout || {}, t = state.tokens, acc = ctx.accentFor(ctx.data.now.seed);
+    var h = '<div class="u-shell" data-skin="' + esc(state.skin || state.theme || "echo-dark") + '">';
+    if (L.sidebar) {
+      h += '<aside class="u-side"><div class="u-brand" style="background:linear-gradient(150deg,' + acc.css + ',hsl(' + ((acc.h + 40) % 360) + ' ' + acc.s + '% ' + acc.l + '%))"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h10M4 18h16" stroke="#0b0b14" stroke-width="2.6" stroke-linecap="round"/></svg></div>' +
+        '<nav class="u-nav">' + ["Home", "Playing", "Stats"].map(function (n, i) { return '<button class="' + (i === 1 ? "on" : "") + '" title="' + n + '"><span class="u-navdot"></span></button>'; }).join("") + '</nav>' +
+        '<div class="u-sidenow"><span class="u-wf">' + ctx.wfBars(9, acc) + '</span><em>' + esc(ctx.data.now.title) + '</em></div></aside>';
+    }
+    h += '<div class="u-main">';
+    if (L.topbar) {
+      h += '<header class="u-top"><div class="u-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5" stroke-linecap="round"/></svg><input placeholder="Search music" /></div><div class="u-nowchip"><span class="u-thumb" style="background-image:' + ctx.art(ctx.data.now.seed) + '"></span><div><b>' + esc(ctx.data.now.title) + '</b><i>' + esc(ctx.data.now.artist) + '</i></div></div></header>';
+    }
+    h += '<div class="u-content" data-canvas>';
+    (state.blocks || []).forEach(function (b) {
+      var def = blocks[b.type]; if (!def) return;
+      var st = b.style || {};
+      h += '<section class="u-block" style="grid-column:span ' + (b.span || 12) + '"' +
+        ' data-block-id="' + b.id + '" data-type="' + b.type + '"' +
+        ' data-pad="' + (st.pad == null ? 0 : st.pad) + '" data-tint="' + (st.tint || "none") + '"' +
+        ' data-align="' + (st.align || "left") + '" data-hide="' + (st.hide || "none") + '">' +
+        def.render(b.props || {}, ctx) + '</section>';
+    });
+    h += '</div>';
+    if (L.playerbar) {
+      h += '<footer class="u-player"><div class="u-pbleft"><span class="u-thumb lg" style="background-image:' + ctx.art(ctx.data.now.seed) + '"></span><div><b>' + esc(ctx.data.now.title) + '</b><i>' + esc(ctx.data.now.artist) + '</i></div></div>' +
+        '<div class="u-pbcenter"><button class="u-pbtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5.5h2.4v13H7zM19 6v12l-8.5-6z"/></svg></button>' +
+        '<span class="u-ring" data-pb-ring>' + ringSvg(0, acc, 5, 64) + '</span>' +
+        '<button class="u-pbtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14.6 5.5H17v13h-2.4zM5 6l8.5 6L5 18z"/></svg></button></div>' +
+        '<div class="u-pbright"><div class="u-vu"><span>L</span><div class="u-meter"><i data-pb-vu="l" style="width:0%"></i></div></div><div class="u-vu"><span>R</span><div class="u-meter"><i data-pb-vu="r" style="width:0%"></i></div></div></div></footer>';
+    }
+    h += '</div></div>';
+    return h;
+  }
+
+  function render(state, root) {
+    clearAnims();
+    var ctx = ctxFor(state);
+    root.innerHTML = shellHtml(state, ctx);
+    /* mount blocks */
+    Array.prototype.forEach.call(root.querySelectorAll(".u-block"), function (el) {
+      var def = blocks[el.getAttribute("data-type")]; if (!def || !def.mount) return;
+      var id = el.getAttribute("data-block-id");
+      var b = (state.blocks || []).filter(function (x) { return x.id === id; })[0];
+      try { def.mount(el, (b && b.props) || {}, ctx); } catch (e) { /* noop */ }
+    });
+    /* player bar anim */
+    var acc = ctx.accentFor(ctx.data.now.seed);
+    var ring = root.querySelector("[data-pb-ring]");
+    var vuL = root.querySelector('[data-pb-vu="l"]'), vuR = root.querySelector('[data-pb-vu="r"]');
+    if (ring || vuL) {
+      var fake = { el: root, isConnected: true };
+      registerAnim(fake, "vu", { acc: acc, onDraw: function (lvl) {
+        if (vuL) vuL.style.width = clamp(lvl * 1.25, 0, 1) * 100 + "%";
+        if (vuR) vuR.style.width = clamp(lvl * 1.1, 0, 1) * 100 + "%";
+      } });
+    }
+    return ctx;
+  }
+
+  /* ------------------------------------------------------------------ *
+   *  depth objects — album art cut into foreground shapes that occlude
+   *  the title/lyrics (real layer order + pointer parallax)
+   * ------------------------------------------------------------------ */
+  var SHAPES = {
+    orb: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='47'/></svg>",
+    blob: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M52 2c22 0 43 13 45 34s-9 41-28 51-45 4-57-13S0 32 11 18 31 2 52 2z'/></svg>",
+    slab: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='7' y='20' width='86' height='60' rx='13'/></svg>",
+    star: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M50 3l13 31 33 2-26 22 8 32-28-18-28 18 8-32L4 36l33-2z'/></svg>",
+    diamond: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M50 2l48 48-48 48L2 50z'/></svg>",
+    vinyl: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path fill-rule='evenodd' d='M50 2a48 48 0 100 96 48 48 0 000-96zm0 15a33 33 0 110 66 33 33 0 010-66zm0 27a6 6 0 100 12 6 6 0 000-12z'/></svg>",
+    ring: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path fill-rule='evenodd' d='M50 2a48 48 0 100 96 48 48 0 000-96zm0 17a31 31 0 110 62 31 31 0 010-62z'/></svg>"
+  };
+  var DEPTH_LAYOUTS = {
+    1: [[64, 16, 46, 0.9]],
+    2: [[66, 8, 38, 1.0], [19, 54, 24, 0.55]],
+    3: [[68, 4, 34, 1.05], [17, 50, 21, 0.62], [56, 66, 17, 0.45]]
+  };
+  function depthObjects(art, opts) {
+    opts = opts || {};
+    var n = Math.max(1, Math.min(3, opts.count == null ? 2 : opts.count));
+    var lay = DEPTH_LAYOUTS[n], shape = opts.shape || "orb", out = '<div class="u-np-depth">';
+    for (var i = 0; i < lay.length; i++) {
+      var o = lay[i], sh = shape === "mixed" ? ["orb", "slab", "blob"][i % 3] : shape;
+      out += '<div class="u-np-depthobj" data-depth="' + o[3] + '" data-shape="' + sh + '" style="background-image:' + art +
+        ';mask-size:auto ' + o[2] + '%;-webkit-mask-size:auto ' + o[2] + '%;mask-position:' + o[0] + '% ' + o[1] + '%;-webkit-mask-position:' + o[0] + '% ' + o[1] + '%;mask-repeat:no-repeat;-webkit-mask-repeat:no-repeat"></div>';
+    }
+    return out + '</div>';
+  }
+  function applyDepthMasks(root) {
+    Array.prototype.forEach.call(root.querySelectorAll("[data-shape]"), function (o) {
+      var svg = SHAPES[o.getAttribute("data-shape")] || SHAPES.orb;
+      var url = 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
+      o.style.webkitMaskImage = url; o.style.maskImage = url;
+    });
+  }
+  function bindDepth(container, opts) {
+    opts = opts || {};
+    /* Occlusion is static by design — objects do NOT follow the cursor.
+       Optional autonomous drift only when opts.motion is explicitly true. */
+    if (!opts.motion) return;
+    var objs = Array.prototype.slice.call(container.querySelectorAll(".u-np-depthobj"));
+    if (!objs.length) return;
+    var t0 = performance.now();
+    (function loop(ts) {
+      if (!container.isConnected) return;
+      requestAnimationFrame(loop);
+      var t = (ts - t0) / 1000;
+      objs.forEach(function (o) {
+        var d = parseFloat(o.getAttribute("data-depth")) || 0.5;
+        o.style.transform = "translate3d(" + (Math.sin(t * 0.4 + d * 3) * 6).toFixed(2) + "px," + (Math.cos(t * 0.34 + d * 3) * 7).toFixed(2) + "px,0)";
+      });
+    })(t0);
+  }
+
+  window.UI = {
+    hash: hash, clamp: clamp, lerp: lerp, fmt: fmt, esc: esc, hslRgb: hslRgb,
+    data: defaultData, art: art, albumHue: albumHue, accentFor: accentFor,
+    charts: charts, ringsSvg: ringsSvg, ringSvg: ringSvg, wfBars: wfBars,
+    register: register, blocks: blocks, render: render, ctxFor: ctxFor,
+    registerAnim: registerAnim, setPlaying: setPlaying, setNow: setNow, getPos: function () { return pos; }, getDur: function () { return dur; },
+    SHAPES: SHAPES, depthObjects: depthObjects, applyDepthMasks: applyDepthMasks, bindDepth: bindDepth
+  };
+})();
+</script>
+<script>/* UI Studio — canvas component styles. Shared by editor + exported mockups.
+   Everything is scoped under .u-shell so it can't leak into the editor chrome. */
+window.UIComponentCss = `
+.u-shell{ display:flex; height:100%; min-height:100%; background:var(--bg); color:var(--text);
+  font-family:var(--font); font-size:14px; letter-spacing:.1px; -webkit-font-smoothing:antialiased; }
+.u-shell *{ box-sizing:border-box; }
+.u-shell button{ font:inherit; color:inherit; background:none; border:none; cursor:pointer; }
+.u-shell input{ font:inherit; color:inherit; }
+
+/* sidebar */
+.u-side{ width:96px; flex:0 0 96px; display:flex; flex-direction:column; align-items:center; gap:8px;
+  padding:20px 0 16px; border-right:1px solid var(--line); background:linear-gradient(180deg,var(--bg2),var(--bg)); }
+.u-brand{ width:40px; height:40px; border-radius:12px; display:grid; place-items:center; margin-bottom:22px;
+  box-shadow:var(--hl2),inset 0 -2px 6px rgb(0 0 0/.35),0 8px 20px var(--accent-glow); }
+.u-brand svg{ width:22px; height:22px; }
+.u-nav{ display:flex; flex-direction:column; gap:10px; align-items:center; width:100%; }
+.u-nav button{ width:50px; height:50px; border-radius:14px; position:relative; display:grid; place-items:center; color:var(--muted2); transition:.2s var(--ease,cubic-bezier(.22,.61,.36,1)); }
+.u-nav button:hover{ color:var(--text); background:rgb(255 255 255/.05); }
+.u-nav button.on{ color:var(--text); background:rgb(255 255 255/.07); }
+.u-nav button.on .u-navdot{ background:var(--accent); box-shadow:0 0 12px var(--accent); }
+.u-nav button.on::before{ content:""; position:absolute; left:-23px; top:50%; transform:translateY(-50%); width:3px; height:22px; border-radius:3px; background:var(--accent); box-shadow:0 0 12px var(--accent); }
+.u-navdot{ width:16px; height:16px; border-radius:5px; border:2px solid currentColor; }
+.u-sidenow{ margin-top:auto; display:flex; flex-direction:column; align-items:center; gap:8px; }
+.u-sidenow .u-wf{ display:flex; align-items:flex-end; gap:2px; height:24px; }
+.u-sidenow .u-wf i{ width:2.5px; border-radius:2px; }
+.u-sidenow em{ font-style:normal; font-size:9px; letter-spacing:.5px; color:var(--muted); }
+
+/* main */
+.u-main{ flex:1; min-width:0; display:flex; flex-direction:column; }
+.u-top{ display:flex; align-items:center; gap:14px; padding:14px 26px; border-bottom:1px solid var(--line); }
+.u-search{ flex:1; max-width:520px; display:flex; align-items:center; gap:10px; padding:9px 14px; border-radius:12px; background:var(--panel); border:1px solid var(--line); }
+.u-search svg{ width:16px; height:16px; color:var(--muted2); }
+.u-search input{ flex:1; background:none; border:none; outline:none; min-width:0; }
+.u-nowchip{ margin-left:auto; display:flex; align-items:center; gap:10px; padding:7px 12px 7px 8px; border-radius:12px; background:var(--panel); border:1px solid var(--line); }
+.u-nowchip b{ display:block; font-size:12px; } .u-nowchip i{ display:block; font-style:normal; font-size:10.5px; color:var(--muted); }
+.u-content{ flex:1; min-height:0; overflow:auto; padding:28px 32px 32px; display:grid; grid-template-columns:repeat(12,1fr); gap:var(--gap); align-items:start; }
+.u-block{ min-width:0; }
+.u-thumb{ width:34px; height:34px; border-radius:9px; background-size:cover; background-position:center; flex:0 0 auto; box-shadow:inset 0 0 0 1px rgb(255 255 255/.06); }
+.u-thumb.lg{ width:48px; height:48px; border-radius:10px; }
+
+/* player bar */
+.u-player{ flex:0 0 auto; height:80px; display:flex; align-items:center; gap:18px; padding:0 24px; border-top:1px solid var(--line); background:linear-gradient(180deg,var(--bg2),var(--bg)); }
+.u-pbleft{ display:flex; align-items:center; gap:12px; width:240px; flex:0 0 auto; min-width:0; }
+.u-pbleft b{ display:block; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.u-pbleft i{ display:block; font-style:normal; font-size:11.5px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.u-pbcenter{ flex:1; display:flex; align-items:center; justify-content:center; gap:16px; }
+.u-pbtn{ width:40px; height:40px; border-radius:50%; display:grid; place-items:center; color:var(--muted); }
+.u-pbtn:hover{ color:var(--text); background:rgb(255 255 255/.06); }
+.u-pbtn svg{ width:18px; height:18px; }
+.u-ring{ width:64px; height:64px; flex:0 0 auto; filter:drop-shadow(0 6px 16px rgb(0 0 0/.5)); }
+.u-pbright{ width:240px; flex:0 0 auto; display:flex; flex-direction:column; gap:6px; }
+.u-vu{ display:flex; align-items:center; gap:8px; }
+.u-vu span{ width:9px; font-size:9px; color:var(--muted2); }
+.u-meter{ flex:1; height:7px; border-radius:5px; background:var(--well); box-shadow:var(--well-in); overflow:hidden; }
+.u-meter i{ display:block; height:100%; border-radius:5px; background:linear-gradient(90deg,rgb(var(--accent-rgb)/.8),hsl(from var(--accent) h s 70%)); box-shadow:0 0 10px var(--accent-glow); }
+
+/* generic panel + text */
+.u-panel{ border-radius:var(--r); background:var(--panel); border:1px solid var(--line); padding:20px;
+  box-shadow:var(--hl),var(--shade),var(--sh-key); }
+.u-eyebrow{ font-size:11px; font-weight:700; letter-spacing:2.2px; text-transform:uppercase; color:var(--accent); }
+.u-h1{ margin:8px 0 0; font-size:44px; font-weight:800; letter-spacing:-1.3px; line-height:1.03; }
+.u-h2{ margin:0; font-size:22px; font-weight:750; letter-spacing:-.4px; }
+.u-sub{ margin-top:3px; font-size:13px; color:var(--muted); }
+.u-label{ font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted2); }
+.u-badge{ display:inline-flex; align-items:center; padding:3px 9px; border-radius:7px; font-size:10px; letter-spacing:.4px;
+  background:rgb(255 255 255/.05); border:1px solid var(--line); color:var(--muted); }
+.u-badge.acc{ background:var(--accent-soft); border-color:var(--accent-line); color:var(--text); }
+
+/* hero */
+.u-hero{ position:relative; border-radius:var(--r); overflow:hidden; min-height:420px; background:#080808; border:1px solid var(--line);
+  box-shadow:var(--hl),var(--sh-amb),var(--sh-far); }
+.u-hero-art{ position:absolute; inset:0; background-size:cover; background-position:center; transform:scale(1.03); transition:transform 6s cubic-bezier(.22,.61,.36,1); }
+.u-hero:hover .u-hero-art{ transform:scale(1.08); }
+.u-hero-scrim{ position:absolute; inset:0; background:linear-gradient(90deg,rgb(6 6 6/.8),rgb(6 6 6/.3) 48%,transparent 72%),linear-gradient(0deg,rgb(6 6 6/.9),transparent 48%); }
+.u-hero-body{ position:relative; z-index:2; height:100%; min-height:420px; display:flex; flex-direction:column; justify-content:flex-end; padding:34px 38px 32px; }
+.u-hero-now{ display:flex; align-items:center; gap:10px; font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#d9d9dc; margin-bottom:12px; }
+.u-hero-now .u-wf{ display:flex; align-items:flex-end; gap:2.5px; height:18px; }
+.u-hero-now .u-wf i{ width:3px; border-radius:2px; }
+.u-hero-title{ margin:0; font-size:60px; font-weight:800; letter-spacing:-2.2px; line-height:1; color:#fff; text-shadow:0 4px 30px rgb(0 0 0/.7); }
+.u-hero-artist{ margin-top:10px; font-size:19px; color:#bcbcc1; }
+.u-progress{ margin-top:22px; }
+.u-progress .u-bar{ position:relative; height:4px; border-radius:4px; background:rgb(255 255 255/.16); }
+.u-progress .u-bar i{ position:absolute; inset:0 auto 0 0; border-radius:4px; background:var(--accent); box-shadow:0 0 12px var(--accent-glow); }
+.u-progress .u-knob{ position:absolute; top:50%; width:13px; height:13px; border-radius:50%; background:var(--accent); transform:translate(-50%,-50%); box-shadow:0 0 0 4px var(--accent-soft),0 0 12px var(--accent-glow); }
+.u-progress .u-times{ display:flex; justify-content:space-between; margin-top:9px; font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; }
+.u-heart{ position:absolute; right:34px; bottom:56px; width:44px; height:44px; border-radius:50%; display:grid; place-items:center; color:var(--accent); background:var(--accent-soft); border:1px solid var(--accent-line); }
+.u-heart svg{ width:19px; height:19px; }
+.u-hero-badges{ display:flex; gap:6px; flex-wrap:wrap; margin-top:14px; }
+/* overlay text sits on artwork — always light, regardless of theme */
+.u-hero-badges .u-badge{ background:rgb(255 255 255/.13); border-color:rgb(255 255 255/.24); color:#fff; }
+.u-hero-badges .u-badge.acc{ background:var(--accent); border-color:transparent; color:#0b0b14; }
+.u-hero .u-progress .u-times, .u-np .u-progress .u-times{ color:rgb(255 255 255/.72); }
+.u-np .u-sub{ color:rgb(255 255 255/.6); }
+
+/* up next / lists */
+.u-unrow{ display:flex; align-items:center; gap:13px; padding:7px 0; }
+.u-unrow .u-art{ width:44px; height:44px; border-radius:8px; background-size:cover; flex:0 0 auto; box-shadow:inset 0 0 0 1px rgb(255 255 255/.06); }
+.u-unrow .u-meta{ min-width:0; flex:1; }
+.u-unrow .u-meta b{ display:block; font-size:14px; font-weight:650; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.u-unrow .u-meta i{ display:block; font-style:normal; font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.u-dur{ font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; flex:0 0 auto; }
+.u-divider{ height:1px; background:var(--line); margin:20px 0; }
+.u-tiles{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.u-tile{ background:var(--panel2); border:1px solid var(--line); border-radius:11px; padding:13px 15px; }
+.u-tile b{ display:block; font-size:18px; font-weight:700; letter-spacing:-.3px; }
+.u-tile span{ display:block; margin-top:3px; font-size:11.5px; color:var(--muted); }
+
+/* stat cards */
+.u-stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:var(--gap); }
+.u-stat{ border-radius:var(--r); background:var(--panel); border:1px solid var(--line); padding:20px; box-shadow:var(--hl),var(--shade),var(--sh-key); }
+.u-stat .u-sic{ width:30px; height:30px; border-radius:9px; display:grid; place-items:center; color:var(--accent); background:var(--accent-soft); margin-bottom:14px; }
+.u-stat .u-sic svg{ width:16px; height:16px; }
+.u-stat b{ display:block; font-size:30px; font-weight:800; letter-spacing:-.8px; }
+.u-stat b small{ font-size:15px; font-weight:650; color:var(--muted); margin-left:3px; }
+.u-stat .u-slabel{ margin-top:5px; font-size:12.5px; color:var(--muted); }
+.u-stat .u-sdelta{ margin-top:10px; font-size:11.5px; color:var(--accent); }
+
+/* charts */
+.u-chart{ width:100%; display:block; }
+.u-card{ border-radius:var(--r); background:var(--panel); border:1px solid var(--line); padding:20px; box-shadow:var(--hl),var(--shade),var(--sh-key); }
+.u-cardhead{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px; }
+.u-grid2{ display:grid; grid-template-columns:1.3fr 1fr; gap:var(--gap); }
+.u-barchart{ display:flex; flex-direction:column; gap:10px; }
+.u-bc{ display:flex; align-items:center; gap:10px; }
+.u-bc .u-name{ width:110px; font-size:12.5px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.u-bc .u-track{ flex:1; height:9px; border-radius:6px; background:var(--well); box-shadow:var(--well-in); overflow:hidden; }
+.u-bc .u-track i{ display:block; height:100%; border-radius:6px; background:var(--accent); box-shadow:0 0 10px var(--accent-glow); }
+.u-bc .u-val{ width:40px; text-align:right; font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; }
+.u-legend{ display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; font-size:11px; color:var(--muted); }
+.u-legend b{ display:inline-block; width:9px; height:9px; border-radius:3px; margin-right:5px; vertical-align:middle; }
+.u-heat{ width:100%; display:block; border-radius:10px; }
+.u-rings{ display:flex; align-items:center; gap:20px; }
+.u-rings .u-rclegend{ display:flex; flex-direction:column; gap:10px; }
+.u-ri{ display:flex; align-items:center; gap:8px; font-size:12.5px; }
+.u-ri .u-sw{ width:10px; height:10px; border-radius:3px; } .u-ri .u-rv{ margin-left:auto; color:var(--text); }
+
+/* track list */
+.u-list{ display:flex; flex-direction:column; }
+.u-row{ display:flex; align-items:center; gap:14px; padding:12px 6px; border-bottom:1px solid var(--line); }
+.u-row:last-child{ border-bottom:none; }
+.u-row .u-idx{ width:26px; font-size:12px; color:var(--muted2); font-variant-numeric:tabular-nums; }
+.u-row .u-art{ width:44px; height:44px; border-radius:8px; background-size:cover; flex:0 0 auto; }
+.u-row .u-meta{ min-width:0; flex:1; }
+.u-row .u-meta b{ display:block; font-size:14px; font-weight:650; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.u-row .u-meta i{ display:block; font-style:normal; font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.u-row .u-plays{ font-size:12px; color:var(--muted); }
+
+/* albums + moods */
+.u-albums{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:var(--gap); }
+.u-album .u-cover{ width:100%; aspect-ratio:1; border-radius:10px; background-size:cover; margin-bottom:10px; box-shadow:inset 0 -12px 26px rgb(0 0 0/.5),var(--sh-key); }
+.u-album b{ display:block; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.u-album span{ display:block; font-size:11.5px; color:var(--muted); }
+.u-moods{ display:grid; grid-template-columns:repeat(4,1fr); gap:var(--gap); }
+.u-mood{ border-radius:var(--r); background:var(--panel); border:1px solid var(--line); padding:18px; box-shadow:var(--hl),var(--shade),var(--sh-key); }
+.u-mood b{ display:block; font-size:15px; }
+.u-mood span{ display:block; margin-top:6px; font-size:12px; color:var(--muted); }
+.u-mood .u-dot{ float:right; width:11px; height:11px; border-radius:50%; margin-top:4px; }
+
+/* signal blocks */
+.u-vus{ display:flex; flex-direction:column; gap:12px; }
+.u-knobs{ display:flex; gap:26px; justify-content:center; padding:10px 0; flex-wrap:wrap; }
+.u-knob{ width:64px; height:64px; border-radius:50%; position:relative; cursor:ns-resize; flex:0 0 auto;
+  background:radial-gradient(circle at 34% 28%,#2c2c42,#0f0f18 72%);
+  box-shadow:var(--hl2),inset 0 -7px 14px rgb(0 0 0/.75),0 7px 18px rgb(0 0 0/.6); }
+.u-knob::after{ content:""; position:absolute; left:50%; top:10px; width:3px; height:16px; border-radius:2px; transform-origin:50% 22px;
+  transform:translateX(-50%) rotate(var(--rot,-135deg)); background:linear-gradient(180deg,#fff,var(--accent)); box-shadow:0 0 9px var(--accent-glow); }
+.u-knob.off{ filter:saturate(.25) brightness(.7); }
+.u-knob .u-kl{ position:absolute; left:50%; bottom:-20px; transform:translateX(-50%); font-size:10px; color:var(--muted); white-space:nowrap; }
+.u-chain{ display:flex; flex-direction:column; gap:8px; }
+.u-stage{ display:flex; align-items:center; gap:11px; padding:10px 12px; border-radius:12px; background:var(--panel2); border:1px solid var(--line); box-shadow:var(--hl); }
+.u-stage.on{ border-color:var(--accent-line); box-shadow:var(--hl),0 0 16px var(--accent-soft); }
+.u-stage .u-sdot{ width:8px; height:8px; border-radius:50%; background:var(--muted2); }
+.u-stage.on .u-sdot{ background:var(--accent); box-shadow:0 0 12px var(--accent); }
+.u-stage .u-sname{ flex:1; font-size:12.5px; }
+.u-stage .u-sstate{ font-size:9px; letter-spacing:.8px; text-transform:uppercase; color:var(--muted2); }
+
+/* now playing */
+.u-np{ position:relative; border-radius:var(--r); overflow:hidden; min-height:540px; background:#050508; border:1px solid var(--line); box-shadow:var(--sh-amb),var(--sh-far); }
+.u-np-art{ position:absolute; inset:0; background-size:cover; background-position:center; filter:brightness(.72); }
+.u-np-scrim{ position:absolute; inset:0; background:linear-gradient(0deg,rgb(4 4 6/.85),transparent 55%); }
+.u-np-body{ position:relative; z-index:2; height:100%; min-height:540px; display:flex; flex-direction:column; justify-content:flex-end; padding:34px 40px; }
+.u-np-lyrics{ position:absolute; z-index:2; left:40px; top:22%; width:44%; display:flex; flex-direction:column; gap:8px; max-height:42%; overflow:hidden; -webkit-mask-image:linear-gradient(180deg,#000 72%,transparent); mask-image:linear-gradient(180deg,#000 72%,transparent); }
+.u-np-lyrics .u-line{ font-size:20px; font-weight:600; color:rgb(255 255 255/.34); }
+.u-np-lyrics .u-line.cur{ color:#fff; }
+
+
+/* ============ per-theme skins: structural, not just recolour ============ */
+
+/* Brutalist — hard offsets, heavy borders, uppercase, zero radius */
+.u-shell[data-skin="brutalist"] .u-panel,
+.u-shell[data-skin="brutalist"] .u-card,
+.u-shell[data-skin="brutalist"] .u-stat,
+.u-shell[data-skin="brutalist"] .u-mood,
+.u-shell[data-skin="brutalist"] .u-tile{ border:2px solid #111; border-radius:0; box-shadow:5px 5px 0 #111; background:#fbfaf6; }
+.u-shell[data-skin="brutalist"] .u-hero{ border:3px solid #111; border-radius:0; box-shadow:8px 8px 0 #111; }
+.u-shell[data-skin="brutalist"] .u-h1,
+.u-shell[data-skin="brutalist"] .u-h2,
+.u-shell[data-skin="brutalist"] .u-hero-title{ text-transform:uppercase; letter-spacing:-.5px; font-weight:900; }
+.u-shell[data-skin="brutalist"] .u-eyebrow,
+.u-shell[data-skin="brutalist"] .u-label{ background:#111; color:#fff; padding:3px 7px; letter-spacing:1px; }
+.u-shell[data-skin="brutalist"] .u-badge{ border:1.5px solid #111; border-radius:0; }
+.u-shell[data-skin="brutalist"] .u-side{ border-right:2px solid #111; background:#fbfaf6; }
+.u-shell[data-skin="brutalist"] .u-player{ border-top:2px solid #111; background:#fbfaf6; }
+.u-shell[data-skin="brutalist"] .u-brand{ border-radius:0; box-shadow:3px 3px 0 #111; }
+.u-shell[data-skin="brutalist"] .u-meter{ border:1.5px solid #111; border-radius:0; box-shadow:none; }
+
+/* Terminal — monospace, uppercase, dashed rules, glow, left-bar panels */
+.u-shell[data-skin="terminal"] .u-panel,
+.u-shell[data-skin="terminal"] .u-card,
+.u-shell[data-skin="terminal"] .u-stat,
+.u-shell[data-skin="terminal"] .u-mood,
+.u-shell[data-skin="terminal"] .u-tile{ border:1px dashed var(--line2); border-radius:0; box-shadow:none; background:transparent; border-left:3px solid var(--accent); }
+.u-shell[data-skin="terminal"] .u-h1,
+.u-shell[data-skin="terminal"] .u-h2,
+.u-shell[data-skin="terminal"] .u-eyebrow,
+.u-shell[data-skin="terminal"] .u-label,
+.u-shell[data-skin="terminal"] .u-hero-title{ text-transform:uppercase; letter-spacing:1px; }
+.u-shell[data-skin="terminal"] .u-h1{ font-size:36px; }
+.u-shell[data-skin="terminal"] .u-h1::before,
+.u-shell[data-skin="terminal"] .u-hero-title::before{ content:"> "; color:var(--accent); }
+.u-shell[data-skin="terminal"] .u-eyebrow{ color:var(--muted); }
+.u-shell[data-skin="terminal"] .u-eyebrow::before{ content:"// "; }
+.u-shell[data-skin="terminal"] .u-side{ border-right:1px dashed var(--line2); }
+.u-shell[data-skin="terminal"] .u-player{ border-top:1px dashed var(--line2); background:transparent; }
+.u-shell[data-skin="terminal"] .u-hero{ border:1px dashed var(--line2); box-shadow:none; }
+.u-shell[data-skin="terminal"] .u-badge{ border-radius:0; border-style:dashed; }
+.u-shell[data-skin="terminal"] .u-brand{ border-radius:0; box-shadow:none; }
+
+/* Blueprint — square, dashed grid, corner ticks, all-caps labels */
+.u-shell[data-skin="blueprint"] .u-panel,
+.u-shell[data-skin="blueprint"] .u-card,
+.u-shell[data-skin="blueprint"] .u-stat,
+.u-shell[data-skin="blueprint"] .u-mood,
+.u-shell[data-skin="blueprint"] .u-tile{ border:1px dashed var(--line2); border-radius:0; box-shadow:none; background:transparent; }
+.u-shell[data-skin="blueprint"] .u-h2,
+.u-shell[data-skin="blueprint"] .u-label,
+.u-shell[data-skin="blueprint"] .u-eyebrow{ text-transform:uppercase; letter-spacing:2px; }
+.u-shell[data-skin="blueprint"] .u-hero{ border:1px solid var(--line2); border-radius:0; }
+.u-shell[data-skin="blueprint"] .u-side{ border-right:1px dashed var(--line2); }
+.u-shell[data-skin="blueprint"] .u-player{ border-top:1px dashed var(--line2); }
+.u-shell[data-skin="blueprint"] .u-badge{ border-radius:0; }
+.u-shell[data-skin="blueprint"] .u-content{ background-image:linear-gradient(rgb(120 170 220/.06) 1px,transparent 1px),linear-gradient(90deg,rgb(120 170 220/.06) 1px,transparent 1px); background-size:32px 32px; }
+.u-shell[data-skin="blueprint"] .u-brand{ border-radius:0; }
+
+/* Sunset — over-rounded, glow, gradient hairline borders */
+.u-shell[data-skin="sunset"] .u-panel,
+.u-shell[data-skin="sunset"] .u-card,
+.u-shell[data-skin="sunset"] .u-stat,
+.u-shell[data-skin="sunset"] .u-mood,
+.u-shell[data-skin="sunset"] .u-tile{ border-radius:26px; border:1px solid transparent;
+  background:linear-gradient(var(--panel),var(--panel)) padding-box,linear-gradient(135deg,var(--accent),hsl(from var(--accent) h s 80%)) border-box;
+  box-shadow:0 18px 44px rgb(0 0 0/.5),0 0 30px var(--accent-soft); }
+.u-shell[data-skin="sunset"] .u-hero{ border-radius:30px; }
+.u-shell[data-skin="sunset"] .u-h1{ font-weight:800; letter-spacing:-1.6px; }
+.u-shell[data-skin="sunset"] .u-h2{ font-size:24px; }
+.u-shell[data-skin="sunset"] .u-badge{ border-radius:20px; }
+.u-shell[data-skin="sunset"] .u-brand{ border-radius:18px; }
+.u-shell[data-skin="sunset"] .u-thumb{ border-radius:14px; }
+.u-shell[data-skin="sunset"] .u-tile{ border-radius:20px; }
+
+/* Mono — flat, hairline, no shadows, tiny caps, tight grid */
+.u-shell[data-skin="mono"] .u-panel,
+.u-shell[data-skin="mono"] .u-card,
+.u-shell[data-skin="mono"] .u-stat,
+.u-shell[data-skin="mono"] .u-mood,
+.u-shell[data-skin="mono"] .u-tile{ border:1px solid var(--line); border-radius:10px; box-shadow:none; background:transparent; }
+.u-shell[data-skin="mono"] .u-hero{ box-shadow:none; border-radius:12px; }
+.u-shell[data-skin="mono"] .u-h1{ font-size:34px; font-weight:700; letter-spacing:-.8px; }
+.u-shell[data-skin="mono"] .u-h2{ font-size:17px; font-weight:650; }
+.u-shell[data-skin="mono"] .u-eyebrow,
+.u-shell[data-skin="mono"] .u-label{ letter-spacing:1.6px; color:var(--muted); }
+.u-shell[data-skin="mono"] .u-badge{ border-radius:5px; }
+.u-shell[data-skin="mono"] .u-brand{ border-radius:9px; box-shadow:none; }
+.u-shell[data-skin="mono"] .u-meter{ height:5px; }
+
+/* Cyber — neon glow, thin magenta/cyan edges, dark */
+.u-shell[data-skin="cyber"] .u-panel,
+.u-shell[data-skin="cyber"] .u-card,
+.u-shell[data-skin="cyber"] .u-stat,
+.u-shell[data-skin="cyber"] .u-mood,
+.u-shell[data-skin="cyber"] .u-tile{ border:1px solid var(--accent-line); border-radius:6px; box-shadow:0 0 22px var(--accent-soft),inset 0 0 24px rgb(var(--accent-rgb)/.06); background:var(--panel); }
+.u-shell[data-skin="cyber"] .u-h1{ font-size:40px; letter-spacing:-1px; text-shadow:0 0 22px var(--accent-glow); }
+.u-shell[data-skin="cyber"] .u-eyebrow{ text-shadow:0 0 10px var(--accent-glow); }
+.u-shell[data-skin="cyber"] .u-hero{ border:1px solid var(--accent-line); border-radius:8px; box-shadow:0 0 30px var(--accent-soft); }
+.u-shell[data-skin="cyber"] .u-brand{ border-radius:8px; }
+.u-shell[data-skin="cyber"] .u-badge{ border-radius:4px; border-color:var(--accent-line); }
+
+/* Paper — soft light, hairline, generous radius */
+.u-shell[data-skin="paper"] .u-panel,
+.u-shell[data-skin="paper"] .u-card,
+.u-shell[data-skin="paper"] .u-stat,
+.u-shell[data-skin="paper"] .u-mood,
+.u-shell[data-skin="paper"] .u-tile{ border:1px solid var(--line); border-radius:18px; box-shadow:0 12px 30px rgb(30 30 60/.08); background:var(--panel); }
+.u-shell[data-skin="paper"] .u-hero{ border-radius:20px; box-shadow:0 20px 50px rgb(30 30 60/.14); }
+.u-shell[data-skin="paper"] .u-h1{ font-weight:750; letter-spacing:-1px; }
+.u-shell[data-skin="paper"] .u-brand{ border-radius:14px; }
+
+/* High contrast — thick rules, zero radius, maximum legibility */
+.u-shell[data-skin="high-contrast"] .u-panel,
+.u-shell[data-skin="high-contrast"] .u-card,
+.u-shell[data-skin="high-contrast"] .u-stat,
+.u-shell[data-skin="high-contrast"] .u-mood,
+.u-shell[data-skin="high-contrast"] .u-tile{ border:2px solid #fff; border-radius:0; box-shadow:none; background:#000; }
+.u-shell[data-skin="high-contrast"] .u-hero{ border:3px solid #fff; border-radius:0; }
+.u-shell[data-skin="high-contrast"] .u-h1,
+.u-shell[data-skin="high-contrast"] .u-h2,
+.u-shell[data-skin="high-contrast"] .u-hero-title{ font-weight:900; }
+.u-shell[data-skin="high-contrast"] .u-eyebrow,
+.u-shell[data-skin="high-contrast"] .u-label{ color:#fff; }
+.u-shell[data-skin="high-contrast"] .u-side{ border-right:2px solid #fff; }
+.u-shell[data-skin="high-contrast"] .u-player{ border-top:2px solid #fff; }
+.u-shell[data-skin="high-contrast"] .u-badge{ border:1.5px solid #fff; border-radius:0; color:#fff; }
+.u-shell[data-skin="high-contrast"] .u-meter{ border:1px solid #fff; border-radius:0; box-shadow:none; }
+
+/* ============ extra blocks ============ */
+
+/* search header */
+.u-searchhead{ display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap; }
+.u-searchbox{ display:flex; align-items:center; gap:10px; padding:11px 16px; border-radius:12px; background:var(--panel); border:1px solid var(--line); min-width:280px; }
+.u-searchbox svg{ width:16px; height:16px; color:var(--muted2); flex:0 0 auto; }
+.u-searchbox input{ flex:1; background:none; border:none; outline:none; min-width:0; }
+
+/* album hero */
+.u-albumhero{ display:flex; gap:26px; align-items:flex-start; }
+.u-ahcover{ width:210px; height:210px; flex:0 0 auto; border-radius:var(--r); background-size:cover; background-position:center;
+  box-shadow:var(--hl),var(--sh-amb),inset 0 -14px 30px rgb(0 0 0/.5); }
+.u-ahbody{ min-width:0; flex:1; }
+.u-ahtitle{ margin:6px 0 4px; font-size:40px; font-weight:800; letter-spacing:-1.2px; line-height:1.05; }
+.u-playrow{ display:flex; gap:10px; margin-top:16px; align-items:center; }
+.u-playbtn{ width:52px; height:52px; border-radius:50%; display:grid; place-items:center; color:#0b0b14; background:var(--accent); box-shadow:0 8px 22px var(--accent-glow); }
+.u-playbtn svg{ width:22px; height:22px; }
+.u-ghostbtn{ padding:10px 16px; border-radius:11px; border:1px solid var(--line); color:var(--muted); }
+@media(max-width:760px){ .u-albumhero{ flex-direction:column; } .u-ahcover{ width:100%; height:auto; aspect-ratio:1; } }
+
+/* session heatmap (album-art cells) */
+.u-arthm{ display:grid; grid-template-columns:repeat(12,1fr); gap:6px; }
+.u-artcell{ aspect-ratio:1; border-radius:7px; position:relative; overflow:hidden; box-shadow:var(--hl),inset 0 -4px 10px rgb(0 0 0/.5); transition:transform .16s; }
+.u-artcell:hover{ transform:translateY(-2px) scale(1.05); z-index:2; }
+.u-artcell i{ position:absolute; inset:0; }
+.u-artcell b{ position:absolute; left:0; right:0; bottom:0; font-size:8px; font-weight:500; text-align:center; background:rgb(0 0 0/.55); color:#fff; padding:1px 0; }
+
+/* sparkline stat */
+.u-spark{ position:absolute; right:12px; bottom:10px; width:84px; height:26px; opacity:.85; }
+
+/* settings list */
+.u-setrow{ display:flex; align-items:center; justify-content:space-between; gap:14px; padding:13px 2px; border-bottom:1px solid var(--line); }
+.u-setrow:last-child{ border-bottom:none; }
+.u-setrow .u-sname b{ font-size:13.5px; font-weight:600; display:block; }
+.u-setrow .u-sname span{ font-size:11.5px; color:var(--muted); }
+.u-toggle{ width:42px; height:24px; border-radius:20px; background:var(--well); box-shadow:var(--well-in); position:relative; flex:0 0 auto; cursor:pointer; }
+.u-toggle i{ position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%; background:var(--muted2); transition:.2s cubic-bezier(.22,.61,.36,1); }
+.u-toggle.on{ background:var(--accent-soft); box-shadow:inset 0 0 0 1px var(--accent-line); }
+.u-toggle.on i{ left:21px; background:var(--accent); box-shadow:0 0 10px var(--accent-glow); }
+
+/* mini player */
+.u-mini{ display:flex; align-items:center; gap:16px; padding:14px 18px; border-radius:var(--r); background:var(--panel); border:1px solid var(--line); box-shadow:var(--hl),var(--shade),var(--sh-key); }
+.u-mini .u-mthumb{ width:52px; height:52px; border-radius:12px; background-size:cover; background-position:center; flex:0 0 auto; box-shadow:inset 0 0 0 1px rgb(255 255 255/.06); }
+.u-mini .u-mbody{ min-width:0; flex:1; }
+.u-mini .u-mbody b{ display:block; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.u-mini .u-mbody i{ display:block; font-style:normal; font-size:11.5px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.u-mini .u-mctl{ display:flex; gap:8px; align-items:center; }
+.u-mini .u-mctl .u-pbtn{ color:var(--muted); }
+.u-mini .u-mprog{ width:120px; height:5px; border-radius:4px; background:var(--well); box-shadow:var(--well-in); overflow:hidden; }
+.u-mini .u-mprog i{ display:block; height:100%; background:var(--accent); box-shadow:0 0 8px var(--accent-glow); }
+
+/* ============ per-block style variants ============ */
+.u-block[data-pad="8"]{ padding:8px; }
+.u-block[data-pad="16"]{ padding:16px; }
+.u-block[data-pad="24"]{ padding:24px; }
+.u-block[data-tint="soft"]{ background:var(--panel); border:1px solid var(--line); border-radius:var(--r); padding:16px; box-shadow:var(--hl),var(--shade),var(--sh-key); }
+.u-block[data-tint="well"]{ background:var(--well); border-radius:var(--r); padding:16px; box-shadow:var(--well-in); }
+.u-block[data-tint="accent"]{ background:var(--accent-soft); border:1px solid var(--accent-line); border-radius:var(--r); padding:16px; }
+.u-block[data-tint="gradient"]{ background:linear-gradient(140deg,var(--accent-soft),transparent 70%); border:1px solid var(--line); border-radius:var(--r); padding:16px; }
+.u-block[data-align="center"]{ text-align:center; }
+.u-block[data-align="center"] .u-searchhead, .u-block[data-align="center"] .u-cardhead{ justify-content:center; }
+.u-block[data-align="right"]{ text-align:right; }
+#canvas.view-phone .u-block[data-hide="phone"], #canvas.view-phone .u-block[data-hide="both"],
+#canvas.view-tablet .u-block[data-hide="tablet"], #canvas.view-tablet .u-block[data-hide="both"]{ display:none; }
+.u-block [data-edit]{ outline:none; }
+.u-block [data-edit].editing{ outline:2px dashed var(--accent); outline-offset:3px; border-radius:3px; cursor:text; }
+
+/* ============ added blocks ============ */
+.u-tabs{ display:flex; gap:6px; flex-wrap:wrap; }
+.u-tab{ padding:8px 14px; border-radius:10px; border:1px solid var(--line); color:var(--muted); font-size:12.5px; }
+.u-tab.on{ color:var(--text); background:var(--accent-soft); border-color:var(--accent-line); }
+.u-tg{ display:inline-flex; padding:4px; gap:3px; border-radius:12px; background:var(--well); box-shadow:var(--well-in); }
+.u-tg button{ padding:7px 13px; border-radius:9px; color:var(--muted); font-size:12px; }
+.u-tg button.on{ color:#0b0b14; background:var(--accent); }
+.u-callout{ display:flex; gap:12px; padding:16px; border-radius:var(--r); border:1px solid var(--line); background:var(--panel); box-shadow:var(--hl),var(--shade),var(--sh-key); }
+.u-callout .u-ico{ width:34px; height:34px; border-radius:10px; display:grid; place-items:center; background:var(--accent-soft); color:var(--accent); flex:0 0 auto; }
+.u-callout b{ display:block; font-size:13.5px; }
+.u-callout p{ margin:3px 0 0; font-size:12.5px; color:var(--muted); line-height:1.55; }
+.u-kv{ display:grid; grid-template-columns:auto 1fr; gap:9px 18px; }
+.u-kv dt{ color:var(--muted); font-size:12.5px; }
+.u-kv dd{ margin:0; text-align:right; font-variant-numeric:tabular-nums; font-size:13px; }
+.u-tl{ display:flex; flex-direction:column; }
+.u-tlrow{ display:flex; gap:14px; padding:10px 0; position:relative; }
+.u-tlrow:not(:last-child)::before{ content:""; position:absolute; left:5px; top:22px; bottom:-6px; width:1px; background:var(--line); }
+.u-tlrow .u-tldot{ width:11px; height:11px; border-radius:50%; background:var(--accent); box-shadow:0 0 10px var(--accent-glow); flex:0 0 auto; margin-top:4px; }
+.u-tlrow .u-tlbody b{ display:block; font-size:13.5px; }
+.u-tlrow .u-tlbody span{ font-size:11.5px; color:var(--muted); }
+.u-tlrow .u-tltime{ margin-left:auto; font-size:11.5px; color:var(--muted2); font-variant-numeric:tabular-nums; }
+.u-table{ width:100%; border-collapse:collapse; }
+.u-table th{ text-align:left; font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--muted2); padding:10px 8px; border-bottom:1px solid var(--line); font-weight:700; }
+.u-table td{ padding:12px 8px; border-bottom:1px solid var(--line); font-size:13px; }
+.u-table tr:last-child td{ border-bottom:none; }
+.u-table td.num{ text-align:right; font-variant-numeric:tabular-nums; }
+.u-chips{ display:flex; gap:8px; flex-wrap:wrap; }
+.u-chip{ padding:7px 13px; border-radius:20px; border:1px solid var(--line); background:var(--panel); font-size:12px; color:var(--muted); }
+.u-chip.on{ color:var(--text); background:var(--accent-soft); border-color:var(--accent-line); }
+.u-avatars{ display:flex; }
+.u-avatars .u-av{ width:40px; height:40px; border-radius:50%; margin-left:-11px; border:2px solid var(--bg); background-size:cover; box-shadow:var(--sh-key); }
+.u-avatars .u-av:first-child{ margin-left:0; }
+.u-ringstat{ display:flex; align-items:center; gap:20px; }
+.u-ringstat .u-rsval b{ display:block; font-size:30px; font-weight:800; letter-spacing:-.8px; }
+.u-ringstat .u-rsval span{ font-size:12px; color:var(--muted); }
+.u-lyrics{ display:flex; flex-direction:column; gap:11px; }
+.u-lyrics .u-line{ font-size:18px; font-weight:600; color:var(--muted2); transition:.2s; }
+.u-lyrics .u-line.cur{ color:var(--text); font-size:21px; }
+.u-notif{ display:flex; gap:12px; align-items:flex-start; padding:14px; border-radius:12px; border:1px solid var(--line); background:var(--panel2); }
+.u-notif .u-ndot{ width:8px; height:8px; border-radius:50%; background:var(--accent); margin-top:6px; box-shadow:0 0 10px var(--accent-glow); flex:0 0 auto; }
+.u-notif b{ display:block; font-size:13px; } .u-notif span{ font-size:12px; color:var(--muted); }
+.u-notif time{ margin-left:auto; font-size:11px; color:var(--muted2); }
+.u-eqbars{ display:flex; align-items:flex-end; gap:5px; height:64px; }
+.u-eqbars i{ flex:1; border-radius:4px; background:linear-gradient(180deg,var(--accent),transparent); box-shadow:0 0 8px var(--accent-glow); transform-origin:bottom; animation:ueq 1.1s ease-in-out infinite; }
+@keyframes ueq{ 0%,100%{ transform:scaleY(.45); } 50%{ transform:scaleY(1); } }
+.u-quote{ font-size:20px; line-height:1.5; font-weight:500; }
+.u-quote cite{ display:block; margin-top:12px; font-size:12px; color:var(--muted); font-style:normal; }
+.u-media{ display:flex; gap:14px; align-items:center; padding:12px; border-radius:12px; border:1px solid var(--line); background:var(--panel2); }
+.u-media .u-mthumb{ width:48px; height:48px; border-radius:10px; background-size:cover; flex:0 0 auto; }
+.u-media .u-mbody{ min-width:0; flex:1; } .u-media .u-mbody b{ display:block; font-size:13.5px; } .u-media .u-mbody i{ font-style:normal; font-size:11.5px; color:var(--muted); }
+.u-media .u-mactions{ display:flex; gap:6px; }
+.u-hr{ height:1px; background:var(--line); border:none; margin:0; }
+.u-statbig{ font-size:44px; font-weight:800; letter-spacing:-1.4px; }
+.u-inline{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+
+/* ============ depth occlusion ============
+   Album art cut into foreground shapes that sit ABOVE the title/lyrics
+   (z-index 3 vs 2), so text passes behind them. Static — no cursor follow. */
+.u-np-depth{ position:absolute; inset:0; z-index:3; pointer-events:none; }
+.u-np-depthobj{ position:absolute; inset:-6%; background-size:cover; background-position:center; background-repeat:no-repeat;
+  transform:scale(1.06); transform-origin:center; will-change:transform;
+  filter:brightness(1.1) saturate(1.12) contrast(1.04) drop-shadow(0 44px 64px rgb(0 0 0/.62)) drop-shadow(0 10px 18px rgb(0 0 0/.45)); }
+.u-np-depthobj::after{ content:""; position:absolute; inset:0;
+  background:radial-gradient(46% 46% at 30% 22%, rgb(255 255 255/.45), transparent 62%);
+  mix-blend-mode:screen; }
+/* text layers must sit below the objects */
+.u-np-body, .u-np-lyrics, .u-hero-body{ z-index:2; }
+
+/* ============ WILD MASHUP skins ============ */
+/* Soft UI / Neumorphic */
+.u-shell[data-skin="soft"] .u-panel,
+.u-shell[data-skin="soft"] .u-card,
+.u-shell[data-skin="soft"] .u-stat,
+.u-shell[data-skin="soft"] .u-mood,
+.u-shell[data-skin="soft"] .u-tile,
+.u-shell[data-skin="soft"] .u-mini{ background:var(--panel); border:none; border-radius:24px;
+  box-shadow:9px 9px 20px rgb(163 177 198/.55),-9px -9px 20px rgb(255 255 255/.9); }
+.u-shell[data-skin="soft"] .u-hero{ border:none; border-radius:26px; box-shadow:12px 12px 28px rgb(163 177 198/.55),-12px -12px 28px rgb(255 255 255/.9); }
+.u-shell[data-skin="soft"] .u-badge{ border:none; border-radius:12px; box-shadow:4px 4px 9px rgb(163 177 198/.5),-4px -4px 9px rgb(255 255 255/.9); background:var(--panel); color:var(--text); }
+.u-shell[data-skin="soft"] .u-brand{ border-radius:16px; box-shadow:5px 5px 12px rgb(163 177 198/.6),-5px -5px 12px rgb(255 255 255/.9); }
+.u-shell[data-skin="soft"] .u-meter{ box-shadow:inset 3px 3px 6px rgb(163 177 198/.5),inset -3px -3px 6px rgb(255 255 255/.9); background:var(--bg); }
+.u-shell[data-skin="soft"] .u-h1{ font-weight:700; letter-spacing:-1px; }
+.u-shell[data-skin="soft"] .u-side{ border-right:none; box-shadow:8px 0 22px rgb(163 177 198/.35); }
+
+/* Glass HUD */
+.u-shell[data-skin="hud"] .u-panel,
+.u-shell[data-skin="hud"] .u-card,
+.u-shell[data-skin="hud"] .u-stat,
+.u-shell[data-skin="hud"] .u-mood,
+.u-shell[data-skin="hud"] .u-tile{ background:linear-gradient(160deg,rgb(24 48 82/.55),rgb(8 16 30/.6)); border:1px solid var(--line2); border-radius:14px;
+  -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); box-shadow:0 0 34px rgb(var(--accent-rgb)/.12),inset 0 0 34px rgb(var(--accent-rgb)/.05); }
+.u-shell[data-skin="hud"] .u-hero{ border:1px solid var(--line2); box-shadow:0 0 44px rgb(var(--accent-rgb)/.16); }
+.u-shell[data-skin="hud"] .u-h1{ font-weight:600; letter-spacing:-.5px; text-shadow:0 0 30px var(--accent-glow); }
+.u-shell[data-skin="hud"] .u-eyebrow{ text-shadow:0 0 12px var(--accent-glow); }
+.u-shell[data-skin="hud"] .u-badge{ border-color:var(--line2); background:rgb(var(--accent-rgb)/.1); color:var(--text); }
+.u-shell[data-skin="hud"] .u-brand{ box-shadow:0 0 26px var(--accent-glow); }
+
+/* WOVE Minimal */
+.u-shell[data-skin="wove"] .u-panel,
+.u-shell[data-skin="wove"] .u-card,
+.u-shell[data-skin="wove"] .u-stat,
+.u-shell[data-skin="wove"] .u-mood,
+.u-shell[data-skin="wove"] .u-tile{ background:transparent; border:none; border-top:1px solid var(--line); border-radius:0; box-shadow:none; padding-left:0; padding-right:0; }
+.u-shell[data-skin="wove"] .u-hero{ border-radius:0; box-shadow:none; }
+.u-shell[data-skin="wove"] .u-h1{ font-size:56px; font-weight:800; letter-spacing:-2px; }
+.u-shell[data-skin="wove"] .u-h2{ font-size:26px; font-weight:750; letter-spacing:-.6px; }
+.u-shell[data-skin="wove"] .u-eyebrow,
+.u-shell[data-skin="wove"] .u-label{ letter-spacing:3px; color:var(--muted2); }
+.u-shell[data-skin="wove"] .u-side{ border-right:1px solid var(--line); }
+.u-shell[data-skin="wove"] .u-brand{ border-radius:0; box-shadow:none; }
+
+/* ============ new blocks ============ */
+
+/* radial tick gauge (the "20% processing" dial) */
+.u-ticks{ position:relative; display:inline-grid; place-items:center; }
+.u-ticks svg{ display:block; }
+.u-ticks .u-tk{ stroke:var(--muted2); opacity:.5; }
+.u-ticks .u-tk.on{ stroke:var(--accent); opacity:1; filter:drop-shadow(0 0 4px var(--accent-glow)); }
+.u-ticks .u-tk.hot{ stroke:#ff6b5a; opacity:1; filter:drop-shadow(0 0 5px rgb(255 107 90/.7)); }
+.u-ticks .u-tkcore{ position:absolute; inset:0; display:grid; place-items:center; text-align:center; align-content:center; }
+.u-ticks .u-tkpct{ font-size:46px; font-weight:800; letter-spacing:-1.5px; line-height:1; }
+.u-ticks .u-tklbl{ font-size:13px; color:var(--muted); margin-top:4px; }
+
+/* progress dock — replaces the mini player, unlocks the waveform */
+.u-dock{ display:flex; align-items:center; gap:24px; padding:16px 24px; border-radius:var(--r); background:var(--panel); border:1px solid var(--line); box-shadow:var(--hl),var(--shade),var(--sh-key); }
+.u-dock .u-dticks{ flex:0 0 auto; }
+.u-dock .u-dwave{ flex:1; min-width:0; }
+.u-dock .u-dunlock{ display:flex; align-items:flex-end; gap:3px; height:66px; }
+.u-dock .u-dunlock i{ flex:1; border-radius:3px; background:var(--well); box-shadow:var(--well-in); min-height:4px; transition:background .25s,box-shadow .25s; }
+.u-dock .u-dunlock i.on{ background:linear-gradient(180deg,var(--accent),rgb(var(--accent-rgb)/.35)); box-shadow:0 0 9px var(--accent-glow); }
+.u-dock .u-dmeta{ display:flex; justify-content:space-between; margin-top:9px; font-size:11px; color:var(--muted2); font-variant-numeric:tabular-nums; }
+.u-dock .u-dinfo{ flex:0 0 auto; text-align:right; }
+.u-dock .u-dinfo b{ display:block; font-size:15px; } .u-dock .u-dinfo span{ font-size:11px; color:var(--muted); }
+
+/* candlesticks */
+.u-candles{ width:100%; display:block; }
+
+/* circular gauge (crypto) */
+.u-gauge{ display:flex; align-items:center; gap:20px; }
+.u-gauge .u-gval b{ display:block; font-size:34px; font-weight:800; letter-spacing:-1px; }
+.u-gauge .u-gval span{ font-size:12px; color:var(--muted); }
+
+/* ribbons (HUD) */
+.u-ribbons{ width:100%; display:block; }
+
+/* node network */
+.u-nodes{ width:100%; display:block; }
+
+/* WOVE arc index */
+.u-arc{ position:relative; display:flex; align-items:center; gap:24px; min-height:180px; }
+.u-arc .u-arcbig{ font-size:96px; font-weight:800; letter-spacing:-4px; line-height:.9; }
+.u-arc .u-arcmeta b{ display:block; font-size:15px; } .u-arc .u-arcmeta span{ font-size:12.5px; color:var(--muted); max-width:220px; display:block; margin-top:4px; }
+.u-arc .u-arcnums{ position:absolute; inset:0; pointer-events:none; }
+.u-arc .u-arcnum{ position:absolute; font-size:22px; font-weight:700; color:var(--muted2); opacity:.5; transform:translate(-50%,-50%); }
+.u-arc .u-arcnum.on{ color:var(--text); opacity:1; font-size:26px; }
+
+/* soft controls */
+.u-softrow{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+.u-softbtn{ padding:12px 20px; border-radius:14px; background:var(--panel); color:var(--text); font-size:13px; font-weight:600;
+  box-shadow:6px 6px 14px rgb(163 177 198/.55),-6px -6px 14px rgb(255 255 255/.9); }
+.u-softbtn.primary{ color:#fff; background:linear-gradient(150deg,var(--accent),rgb(var(--accent-rgb)/.7)); box-shadow:0 8px 20px var(--accent-glow); }
+.u-softinput{ padding:12px 16px; border-radius:14px; background:var(--panel); color:var(--text); min-width:200px;
+  box-shadow:inset 4px 4px 9px rgb(163 177 198/.55),inset -4px -4px 9px rgb(255 255 255/.9); }
+.u-softtoggle{ width:52px; height:30px; border-radius:20px; background:var(--panel); position:relative; box-shadow:inset 3px 3px 7px rgb(163 177 198/.6),inset -3px -3px 7px rgb(255 255 255/.9); cursor:pointer; }
+.u-softtoggle i{ position:absolute; top:4px; left:4px; width:22px; height:22px; border-radius:50%; background:var(--panel2); box-shadow:2px 2px 5px rgb(163 177 198/.7); transition:.2s; }
+.u-softtoggle.on{ background:linear-gradient(150deg,var(--accent),rgb(var(--accent-rgb)/.7)); }
+.u-softtoggle.on i{ left:26px; background:#fff; }
+
+/* transaction list */
+.u-tx{ display:flex; align-items:center; gap:13px; padding:12px 4px; border-bottom:1px solid var(--line); }
+.u-tx:last-child{ border-bottom:none; }
+.u-tx .u-txic{ width:36px; height:36px; border-radius:11px; display:grid; place-items:center; flex:0 0 auto; background:var(--accent-soft); color:var(--accent); }
+.u-tx .u-txname{ min-width:0; flex:1; } .u-tx .u-txname b{ display:block; font-size:13.5px; } .u-tx .u-txname span{ font-size:11.5px; color:var(--muted); }
+.u-tx .u-txval{ text-align:right; } .u-tx .u-txval b{ display:block; font-size:13.5px; font-variant-numeric:tabular-nums; }
+.u-chip.up{ color:#2fbf71; } .u-chip.down{ color:#e05a5a; }
+.u-tx .u-delta{ font-size:11.5px; } .u-tx .u-delta.up{ color:#2fbf71; } .u-tx .u-delta.down{ color:#e05a5a; }
+
+/* years timeline */
+.u-years{ display:flex; align-items:center; gap:0; position:relative; padding:24px 0; }
+.u-years .u-yr{ flex:1; text-align:center; position:relative; font-size:12px; color:var(--muted2); }
+.u-years .u-yr::before{ content:""; position:absolute; left:50%; top:-12px; width:11px; height:11px; border-radius:50%; background:var(--panel); border:2px solid var(--line2); transform:translate(-50%,-50%); }
+.u-years .u-yr.on{ color:var(--text); font-weight:700; }
+.u-years .u-yr.on::before{ background:var(--accent); border-color:var(--accent); box-shadow:0 0 12px var(--accent-glow); }
+.u-years::after{ content:""; position:absolute; left:0; right:0; top:12px; height:1px; background:var(--line2); z-index:-1; }
+
+`;
+</script>
+<script>/* UI Studio — block library. render(props, ctx) -> html ; mount(el, props, ctx) -> wire canvas/interactions */
+(function () {
+  "use strict";
+  var UI = window.UI, R = UI.register, esc = UI.esc, fmt = UI.fmt;
+
+  function csv(s) { return String(s == null ? "" : s).split(",").map(function (x) { return x.trim(); }).filter(Boolean); }
+  function bindDraw(c, fn) {
+    if (!c) return;
+    var run = function () { try { fn(); } catch (e) { } };
+    if (window.ResizeObserver) { new ResizeObserver(run).observe(c); }
+    requestAnimationFrame(run);
+  }
+  function series(n, seed) { var a = []; for (var i = 0; i < n; i++) a.push(.3 + UI.hash(i * 1.9 + seed) * .6 + .12 * Math.sin(i * .6)); return a; }
+
+  /* ---------------- structure ---------------- */
+  R("page-header", {
+    name: "Page header", group: "Structure", icon: "H",
+    defaults: { eyebrow: "Now Playing", title: "Stay with the sound.", sub: "" },
+    fields: [{ key: "eyebrow", label: "Eyebrow", type: "text" }, { key: "title", label: "Title", type: "text" }, { key: "sub", label: "Subtitle", type: "text" }],
+    render: function (p, ctx) {
+      return '<div><div class="u-eyebrow" data-edit="eyebrow">' + esc(p.eyebrow) + '</div><h1 class="u-h1" data-edit="title">' + esc(p.title) + '</h1>' + (p.sub ? '<div class="u-sub" data-edit="sub">' + esc(p.sub) + '</div>' : "") + '</div>';
+    }
+  });
+
+  R("section-head", {
+    name: "Section heading", group: "Structure", icon: "§",
+    defaults: { title: "Recently added", sub: "Fresh arrivals in your library", right: "4 albums" },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "sub", label: "Subtitle", type: "text" }, { key: "right", label: "Right label", type: "text" }],
+    render: function (p) {
+      return '<div class="u-cardhead"><div><h2 class="u-h2" data-edit="title">' + esc(p.title) + '</h2>' + (p.sub ? '<div class="u-sub" data-edit="sub">' + esc(p.sub) + '</div>' : "") + '</div>' + (p.right ? '<div class="u-sub" data-edit="right">' + esc(p.right) + '</div>' : "") + '</div>';
+    }
+  });
+
+  R("text-block", {
+    name: "Text", group: "Structure", icon: "T",
+    defaults: { title: "Heading", body: "A paragraph of explanatory copy." },
+    fields: [{ key: "title", label: "Heading", type: "text" }, { key: "body", label: "Body", type: "textarea" }],
+    render: function (p) { return '<div class="u-card"><h2 class="u-h2">' + esc(p.title) + '</h2><p style="color:var(--muted);line-height:1.6;margin:10px 0 0">' + esc(p.body) + '</p></div>'; }
+  });
+
+  /* ---------------- player ---------------- */
+  R("hero", {
+    name: "Hero / Now Playing", group: "Player", icon: "★",
+    defaults: { title: "Red Thread", artist: "Mira Vale", album: "Forms of Silence · 2026", seed: 3, source: "Forms of Silence", badges: "FLAC, 24-bit, 96 kHz, Lossless", wave: true, spec: true, heart: true, height: 440, depth: false, shape: "orb", count: 2 },
+    fields: [
+      { key: "title", label: "Title", type: "text" }, { key: "artist", label: "Artist", type: "text" },
+      { key: "album", label: "Album", type: "text" }, { key: "source", label: "Playing-from label", type: "text" },
+      { key: "badges", label: "Badges (csv)", type: "text" }, { key: "seed", label: "Art seed", type: "number" },
+      { key: "height", label: "Height (px)", type: "number" }, { key: "wave", label: "Waveform", type: "check" },
+      { key: "spec", label: "Spectrum", type: "check" }, { key: "heart", label: "Heart", type: "check" },
+      { key: "depth", label: "Depth occlusion", type: "check" }, { key: "shape", label: "Object shape", type: "select", options: ["orb", "blob", "slab", "star", "diamond", "vinyl", "ring", "mixed"] }, { key: "count", label: "Objects", type: "number" }
+    ],
+    render: function (p, ctx) {
+      var acc = ctx.accentFor(p.seed);
+      var badges = csv(p.badges).map(function (b) { return '<span class="u-badge' + (/lossless|flac|24/i.test(b) ? " acc" : "") + '">' + esc(b) + '</span>'; }).join("");
+      var depth = p.depth ? UI.depthObjects(ctx.art(p.seed), { shape: p.shape, count: p.count }) : "";
+      return '<div class="u-hero" style="min-height:' + p.height + 'px"><div class="u-hero-art" style="background-image:' + ctx.art(p.seed) + '"></div><div class="u-hero-scrim"></div>' +
+        '<div class="u-hero-body" style="min-height:' + p.height + 'px">' +
+        '<div class="u-hero-now"><span class="u-wf">' + ctx.wfBars(9, acc) + '</span> Playing from ' + esc(p.source) + '</div>' +
+        '<h2 class="u-hero-title" data-edit="title">' + esc(p.title) + '</h2><div class="u-hero-artist" data-edit="artist">' + esc(p.artist) + '</div>' +
+        '<div class="u-hero-badges">' + badges + '</div>' +
+        '<div class="u-progress"><div class="u-bar"><i data-fill style="width:3%"></i><span class="u-knob" data-knob style="left:3%"></span></div>' +
+        '<div class="u-times"><span data-cur>0:08</span><span>' + fmt(ctx.data.now.duration) + '</span></div></div>' +
+        '</div>' + (p.heart ? '<button class="u-heart"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.5-9A5.4 5.4 0 0112 5.5 5.4 5.4 0 0121.5 12c-2 4.4-9.5 9-9.5 9z"/></svg></button>' : "") +
+        (p.wave ? '<canvas class="u-chart" data-hero-wave style="position:absolute;left:0;right:0;bottom:0;height:70px;opacity:.5"></canvas>' : "") +
+        (p.spec ? '<canvas class="u-chart" data-hero-spec style="position:absolute;left:0;right:0;bottom:0;height:90px;opacity:.35;mix-blend-mode:screen"></canvas>' : "") +
+        depth + '</div>';
+    },
+    mount: function (el, p, ctx) {
+      var acc = ctx.accentFor(p.seed);
+      var wave = el.querySelector("[data-hero-wave]"), spec = el.querySelector("[data-hero-spec]");
+      if (wave) ctx.registerAnim(wave, "wave", { seed: p.seed, acc: acc });
+      if (spec) ctx.registerAnim(spec, "spectrum", { acc: acc });
+      UI.applyDepthMasks(el); UI.bindDepth(el);
+      var fill = el.querySelector("[data-fill]"), knob = el.querySelector("[data-knob]"), cur = el.querySelector("[data-cur]");
+      var pos = 8000, dur = ctx.data.now.duration, t0 = performance.now();
+      function step(ts) {
+        if (!el.isConnected) return; requestAnimationFrame(step);
+        pos += (ts - (step._p || ts)) * 16; step._p = ts; if (pos > dur) pos = 0;
+        var pc = pos / dur * 100; if (fill) fill.style.width = pc + "%"; if (knob) knob.style.left = pc + "%"; if (cur) cur.textContent = fmt(pos);
+      }
+      requestAnimationFrame(step);
+    }
+  });
+
+  R("up-next", {
+    name: "Up next panel", group: "Player", icon: "≡",
+    defaults: { title: "Up next", sub: "A quiet sequence · 13 min", count: 3, signal: true },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "sub", label: "Subtitle", type: "text" }, { key: "count", label: "Rows", type: "number" }, { key: "signal", label: "Signal tiles", type: "check" }],
+    render: function (p, ctx) {
+      var rows = ctx.data.tracks.slice(1, 1 + (p.count || 3)).map(function (t) {
+        return '<div class="u-unrow"><div class="u-art" style="background-image:' + ctx.art(t.seed) + '"></div><div class="u-meta"><b>' + esc(t.title) + '</b><i>' + esc(t.artist) + '</i></div><span class="u-dur">' + fmt(t.duration * 1000) + '</span></div>';
+      }).join("");
+      return '<div class="u-panel"><div class="u-cardhead"><h2 class="u-h2">' + esc(p.title) + '</h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;color:var(--accent)"><path d="M4 6h11M4 12h11M4 18h7"/><path d="M17 15l4 3-4 3z" fill="currentColor" stroke="none"/></svg></div>' +
+        '<div class="u-sub">' + esc(p.sub) + '</div><div style="margin-top:18px">' + rows + '</div>' +
+        (p.signal ? '<div class="u-divider"></div><div class="u-label" style="margin-bottom:14px">Signal</div><div class="u-tiles"><div class="u-tile"><b>Lossless</b><span>24-bit / 96 kHz</span></div><div class="u-tile"><b>Stereo</b><span>2 channels</span></div></div>' : "") + '</div>';
+    }
+  });
+
+  R("signal-tiles", {
+    name: "Signal tiles", group: "Player", icon: "▦",
+    defaults: { a: "Lossless", av: "24-bit / 96 kHz", b: "Stereo", bv: "2 channels" },
+    fields: [{ key: "a", label: "Tile A", type: "text" }, { key: "av", label: "A value", type: "text" }, { key: "b", label: "Tile B", type: "text" }, { key: "bv", label: "B value", type: "text" }],
+    render: function (p) { return '<div class="u-tiles"><div class="u-tile"><b>' + esc(p.a) + '</b><span>' + esc(p.av) + '</span></div><div class="u-tile"><b>' + esc(p.b) + '</b><span>' + esc(p.bv) + '</span></div></div>'; }
+  });
+
+  R("now-playing", {
+    name: "Now playing (immersive)", group: "Player", icon: "◉",
+    defaults: { title: "Red Thread", artist: "Mira Vale", album: "Forms of Silence · 2026", seed: 3, lyrics: "left", depth: true, shape: "orb", count: 2 },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "artist", label: "Artist", type: "text" }, { key: "album", label: "Album", type: "text" }, { key: "seed", label: "Art seed", type: "number" }, { key: "lyrics", label: "Lyrics pos", type: "select", options: ["left", "center", "right", "off"] },
+      { key: "depth", label: "Depth occlusion", type: "check" }, { key: "shape", label: "Object shape", type: "select", options: ["orb", "blob", "slab", "star", "diamond", "vinyl", "ring", "mixed"] }, { key: "count", label: "Objects", type: "number" }],
+    render: function (p, ctx) {
+      var lines = ["I'm weightless", "drifting through the static", "every note a breath", "nothing here is heavy", "let the signal carry me"];
+      var ly = p.lyrics !== "off" ? '<div class="u-np-lyrics" style="' + (p.lyrics === "center" ? "left:50%;transform:translateX(-50%);text-align:center;align-items:center;" : p.lyrics === "right" ? "left:auto;right:40px;text-align:right;align-items:flex-end;" : "") + '">' + lines.map(function (l, i) { return '<div class="u-line' + (i === 3 ? " cur" : "") + '">' + esc(l) + '</div>'; }).join("") + '</div>' : "";
+      var depth = p.depth ? UI.depthObjects(ctx.art(p.seed), { shape: p.shape, count: p.count }) : "";
+      return '<div class="u-np"><div class="u-np-art" style="background-image:' + ctx.art(p.seed) + '"></div><div class="u-np-scrim"></div>' + ly +
+        '<canvas class="u-chart" data-np-spec style="position:absolute;left:0;right:0;bottom:0;height:120px;opacity:.5;mix-blend-mode:screen"></canvas>' +
+        '<div class="u-np-body"><h2 class="u-hero-title">' + esc(p.title) + '</h2><div class="u-hero-artist">' + esc(p.artist) + '</div><div class="u-sub" style="color:rgb(255 255 255/.5)">' + esc(p.album) + '</div>' +
+        '<div class="u-progress" style="max-width:900px"><div class="u-bar"><i style="width:32%"></i><span class="u-knob" style="left:32%"></span></div><div class="u-times"><span>1:22</span><span>' + fmt(ctx.data.now.duration) + '</span></div></div></div>' + depth + '</div>';
+    },
+    mount: function (el, p, ctx) { var s = el.querySelector("[data-np-spec]"); if (s) ctx.registerAnim(s, "spectrum", { acc: ctx.accentFor(p.seed) }); UI.applyDepthMasks(el); UI.bindDepth(el); }
+  });
+
+  /* ---------------- data ---------------- */
+  R("stat-cards", {
+    name: "Stat cards", group: "Data", icon: "▮",
+    defaults: { aLabel: "Listened this month", bLabel: "Tracks played", cLabel: "Albums in rotation" },
+    fields: [{ key: "aLabel", label: "Card 1 label", type: "text" }, { key: "bLabel", label: "Card 2 label", type: "text" }, { key: "cLabel", label: "Card 3 label", type: "text" }],
+    render: function (p, ctx) {
+      var s = ctx.data.stats, ic = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+      function card(label, val, unit, sub) { return '<div class="u-stat"><div class="u-sic">' + ic + '</div><b>' + val + (unit ? '<small>' + unit + '</small>' : "") + '</b><div class="u-slabel">' + esc(label) + '</div>' + (sub ? '<div class="u-sdelta">' + esc(sub) + '</div>' : "") + '</div>'; }
+      return '<div class="u-stats">' + card(p.aLabel, s.hours, "hrs", s.delta) + card(p.bLabel, s.tracks, "", s.discoveries) + card(p.cLabel, s.albums, "", "Across " + s.artists + " artists") + '</div>';
+    }
+  });
+
+  R("bar-chart", {
+    name: "Bar chart", group: "Data", icon: "▮▮",
+    defaults: { title: "Listening rhythm", sub: "Hours across the last seven days", right: "9.2h peak", values: "2.4, 4.1, 3.2, 5.6, 4.4, 6.1, 4.9" },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "sub", label: "Subtitle", type: "text" }, { key: "right", label: "Right label", type: "text" }, { key: "values", label: "Values (csv)", type: "text" }],
+    render: function (p) {
+      return '<div class="u-card"><div class="u-cardhead"><div><h2 class="u-h2">' + esc(p.title) + '</h2><div class="u-sub">' + esc(p.sub) + '</div></div><div class="u-sub">' + esc(p.right) + '</div></div><canvas class="u-chart" data-bar style="height:200px"></canvas></div>';
+    },
+    mount: function (el, p, ctx) { var c = el.querySelector("[data-bar]"); bindDraw(c, function () { UI.charts.bars(c, csv(p.values).map(Number), ctx.accentFor(3)); }); }
+  });
+
+  R("line-chart", {
+    name: "Line / gradient chart", group: "Data", icon: "∿",
+    defaults: { title: "Plays over time", sub: "Last 28 days", artColour: true, points: 24 },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "sub", label: "Subtitle", type: "text" }, { key: "points", label: "Points", type: "number" }, { key: "artColour", label: "Art-coloured", type: "check" }],
+    render: function (p) { return '<div class="u-card"><div class="u-cardhead"><div><h2 class="u-h2">' + esc(p.title) + '</h2><div class="u-sub">' + esc(p.sub) + '</div></div></div><canvas class="u-chart" data-line style="height:120px"></canvas></div>'; },
+    mount: function (el, p, ctx) { var c = el.querySelector("[data-line]"); var seeds = ctx.data.tracks.map(function (t) { return t.seed; }); bindDraw(c, function () { UI.charts.line(c, series(p.points || 24, 2), p.artColour ? seeds : null, ctx.accentFor(3)); }); }
+  });
+
+  R("heatmap", {
+    name: "Heatmap", group: "Data", icon: "▩",
+    defaults: { title: "Listening activity", sub: "Hour × weekday", cols: 7, rows: 8, artColour: true },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "sub", label: "Subtitle", type: "text" }, { key: "cols", label: "Columns", type: "number" }, { key: "rows", label: "Rows", type: "number" }, { key: "artColour", label: "Art-coloured", type: "check" }],
+    render: function (p) { return '<div class="u-card"><div class="u-cardhead"><div><h2 class="u-h2">' + esc(p.title) + '</h2><div class="u-sub">' + esc(p.sub) + '</div></div></div><canvas class="u-heat" data-heat style="height:180px"></canvas></div>'; },
+    mount: function (el, p, ctx) { var c = el.querySelector("[data-heat]"); bindDraw(c, function () { UI.charts.heat(c, { cols: p.cols, rows: p.rows, artColour: p.artColour }, ctx.accentFor(3)); }); }
+  });
+
+  R("radial-rings", {
+    name: "Radial ring chart", group: "Data", icon: "◎",
+    defaults: { title: "Library Pulse" },
+    fields: [{ key: "title", label: "Title", type: "text" }],
+    render: function (p, ctx) {
+      var metrics = [{ name: "Tracks", value: 1204, max: 1500 }, { name: "Albums", value: 96, max: 140 }, { name: "Artists", value: 43, max: 80 }, { name: "Hours", value: 128, max: 200 }];
+      var acc = ctx.accentFor(3);
+      var legend = metrics.map(function (m, i) { var col = "hsl(" + ((acc.h + i * 40) % 360) + " 72% 62%)"; return '<div class="u-ri"><span class="u-sw" style="background:' + col + '"></span>' + m.name + '<span class="u-rv">' + m.value.toLocaleString() + '</span></div>'; }).join("");
+      return '<div class="u-card"><div class="u-cardhead"><h2 class="u-h2">' + esc(p.title) + '</h2></div><div class="u-rings">' + ctx.ringsSvg(metrics, acc, 190) + '<div class="u-rclegend">' + legend + '</div></div></div>';
+    }
+  });
+
+  R("genre-mix", {
+    name: "Genre mix", group: "Data", icon: "≡",
+    defaults: { title: "Genre mix", sub: "Your most played sounds" },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "sub", label: "Subtitle", type: "text" }],
+    render: function (p, ctx) {
+      var total = ctx.data.moods.reduce(function (a, m) { return a + m.albums; }, 0);
+      var rows = ctx.data.moods.map(function (m) { var pct = Math.round(m.albums / total * 100); return '<div class="u-bc"><span class="u-name">' + esc(m.name) + '</span><div class="u-track"><i style="width:' + pct + '%;background:hsl(' + m.hue + ' 70% 58%)"></i></div><span class="u-val">' + pct + '%</span></div>'; }).join("");
+      return '<div class="u-card"><div class="u-cardhead"><div><h2 class="u-h2">' + esc(p.title) + '</h2><div class="u-sub">' + esc(p.sub) + '</div></div></div><div class="u-barchart">' + rows + '</div></div>';
+    }
+  });
+
+  R("track-list", {
+    name: "Track list", group: "Data", icon: "☰",
+    defaults: { title: "For this hour", sub: "Selections shaped by your library", count: 6, numbered: true, plays: false },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "sub", label: "Subtitle", type: "text" }, { key: "count", label: "Rows", type: "number" }, { key: "numbered", label: "Numbered", type: "check" }, { key: "plays", label: "Show plays", type: "check" }],
+    render: function (p, ctx) {
+      var rows = ctx.data.tracks.slice(0, p.count || 6).map(function (t, i) {
+        return '<div class="u-row">' + (p.numbered ? '<span class="u-idx">' + String(i + 1).padStart(2, "0") + '</span>' : "") + '<div class="u-art" style="background-image:' + ctx.art(t.seed) + '"></div>' +
+          '<div class="u-meta"><b>' + esc(t.title) + '</b><i>' + esc(t.artist) + ' · ' + esc(t.album) + '</i></div>' + (p.plays ? '<span class="u-plays">' + t.plays + ' plays</span>' : '<span class="u-dur">' + fmt(t.duration * 1000) + '</span>') + '</div>';
+      }).join("");
+      return '<div class="u-card"><div class="u-cardhead"><div><h2 class="u-h2">' + esc(p.title) + '</h2>' + (p.sub ? '<div class="u-sub">' + esc(p.sub) + '</div>' : "") + '</div></div><div class="u-list">' + rows + '</div></div>';
+    }
+  });
+
+  R("album-grid", {
+    name: "Album grid", group: "Data", icon: "▦",
+    defaults: { title: "Recently added", sub: "Fresh arrivals in your library", count: 4 },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "sub", label: "Subtitle", type: "text" }, { key: "count", label: "Albums", type: "number" }],
+    render: function (p, ctx) {
+      var cards = ctx.data.albums.slice(0, p.count || 4).map(function (a) { return '<div class="u-album"><div class="u-cover" style="background-image:' + ctx.art(a.seed) + '"></div><b>' + esc(a.title) + '</b><span>' + esc(a.artist) + ' · ' + a.year + '</span></div>'; }).join("");
+      return '<div><div class="u-cardhead"><div><h2 class="u-h2">' + esc(p.title) + '</h2>' + (p.sub ? '<div class="u-sub">' + esc(p.sub) + '</div>' : "") + '</div></div><div class="u-albums">' + cards + '</div></div>';
+    }
+  });
+
+  R("mood-cards", {
+    name: "Mood cards", group: "Data", icon: "◍",
+    defaults: { title: "Explore moods", sub: "Selections shaped by your library" },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "sub", label: "Subtitle", type: "text" }],
+    render: function (p, ctx) {
+      var cards = ctx.data.moods.map(function (m) { return '<div class="u-mood"><span class="u-dot" style="background:hsl(' + m.hue + ' 70% 55%)"></span><b>' + esc(m.name) + '</b><span>' + m.albums + ' albums</span></div>'; }).join("");
+      return '<div><div class="u-cardhead"><div><h2 class="u-h2">' + esc(p.title) + '</h2>' + (p.sub ? '<div class="u-sub">' + esc(p.sub) + '</div>' : "") + '</div></div><div class="u-moods">' + cards + '</div></div>';
+    }
+  });
+
+  /* ---------------- signal ---------------- */
+  R("spectrum", {
+    name: "Spectrum visualizer", group: "Signal", icon: "▮▮▮",
+    defaults: { height: 140 },
+    fields: [{ key: "height", label: "Height (px)", type: "number" }],
+    render: function () { return '<div class="u-card"><div class="u-cardhead"><h2 class="u-h2">Spectrum</h2></div><canvas class="u-chart" data-spec style="height:140px"></canvas></div>'; },
+    mount: function (el, p, ctx) { var c = el.querySelector("[data-spec]"); c.style.height = (p.height || 140) + "px"; ctx.registerAnim(c, "spectrum", { acc: ctx.accentFor(3) }); }
+  });
+
+  R("waveform", {
+    name: "Waveform scrub", group: "Signal", icon: "∿",
+    defaults: { height: 90, seed: 4 },
+    fields: [{ key: "height", label: "Height (px)", type: "number" }, { key: "seed", label: "Seed", type: "number" }],
+    render: function () { return '<div class="u-card"><div class="u-cardhead"><h2 class="u-h2">Waveform</h2></div><canvas class="u-chart" data-wf style="height:90px"></canvas></div>'; },
+    mount: function (el, p, ctx) { var c = el.querySelector("[data-wf]"); c.style.height = (p.height || 90) + "px"; ctx.registerAnim(c, "wave", { seed: p.seed, acc: ctx.accentFor(p.seed) }); }
+  });
+
+  R("vumeters", {
+    name: "VU meters (L/R)", group: "Signal", icon: "▥",
+    defaults: { title: "Levels" },
+    fields: [{ key: "title", label: "Title", type: "text" }],
+    render: function () { return '<div class="u-card"><div class="u-cardhead"><h2 class="u-h2">Levels</h2></div><div class="u-vus"><div class="u-vu"><span>L</span><div class="u-meter"><i data-vl style="width:0%"></i></div></div><div class="u-vu"><span>R</span><div class="u-meter"><i data-vr style="width:0%"></i></div></div></div></div>'; },
+    mount: function (el, p, ctx) { var l = el.querySelector("[data-vl]"), r = el.querySelector("[data-vr]");
+      ctx.registerAnim(el, "vu", { acc: ctx.accentFor(3), onDraw: function (v) { if (l) l.style.width = UI.clamp(v * 1.25, 0, 1) * 100 + "%"; if (r) r.style.width = UI.clamp(v * 1.1, 0, 1) * 100 + "%"; } }); }
+  });
+
+  R("knobs", {
+    name: "Knobs", group: "Signal", icon: "◌",
+    defaults: { labels: "Volume, Concert Hall, Reverb, Stereo width", on: "1,1,0,1", values: "72,70,35,90" },
+    fields: [{ key: "labels", label: "Labels (csv)", type: "text" }, { key: "on", label: "On (csv 0/1)", type: "text" }, { key: "values", label: "Values (csv)", type: "text" }],
+    render: function (p) {
+      var labels = csv(p.labels), on = csv(p.on).map(Number), vals = csv(p.values).map(Number);
+      var knobs = labels.map(function (l, i) { var rot = -135 + (vals[i] || 0) / 100 * 270; return '<div style="text-align:center"><div class="u-knob' + (on[i] ? "" : " off") + '" data-knob style="--rot:' + rot + 'deg"></div><div style="font-size:10px;color:var(--muted);margin-top:6px">' + esc(l) + '</div></div>'; }).join("");
+      return '<div class="u-card"><div class="u-cardhead"><h2 class="u-h2">Signal trim</h2><div class="u-sub">click = on/off · scroll = value</div></div><div class="u-knobs">' + knobs + '</div></div>';
+    },
+    mount: function (el, p, ctx) {
+      el.querySelectorAll("[data-knob]").forEach(function (k) {
+        var v = parseFloat(k.style.getPropertyValue("--rot")) || 0; var on = !k.classList.contains("off");
+        function paint() { k.style.setProperty("--rot", v + "deg"); k.classList.toggle("off", !on); }
+        k.addEventListener("click", function () { on = !on; paint(); });
+        k.addEventListener("wheel", function (e) { e.preventDefault(); on = true; v = UI.clamp(v + (e.deltaY < 0 ? 9 : -9), -135, 135); paint(); }, { passive: false });
+      });
+    }
+  });
+
+  R("processing-chain", {
+    name: "Processing chain", group: "Signal", icon: "⇉",
+    defaults: { stages: "Decode, ReplayGain, Concert Hall, Mono downmix, Resample 96k, Output", on: "1,0,1,0,1,1" },
+    fields: [{ key: "stages", label: "Stages (csv)", type: "text" }, { key: "on", label: "Active (csv 0/1)", type: "text" }],
+    render: function (p) {
+      var st = csv(p.stages), on = csv(p.on).map(Number);
+      var rows = st.map(function (s, i) { return '<div class="u-stage' + (on[i] ? " on" : "") + '"><span class="u-sdot"></span><span class="u-sname">' + esc(s) + '</span><span class="u-sstate">' + (on[i] ? "active" : "bypass") + '</span></div>'; }).join("");
+      return '<div class="u-card"><div class="u-cardhead"><h2 class="u-h2">Processing chain</h2></div><div class="u-chain">' + rows + '</div></div>';
+    }
+  });
+
+  /* ---------------- extended blocks ---------------- */
+  R("search-header", {
+    name: "Search header", group: "Structure", icon: "⌕",
+    defaults: { eyebrow: "Browse", title: "Find your next repeat.", placeholder: "Search music" },
+    fields: [{ key: "eyebrow", label: "Eyebrow", type: "text" }, { key: "title", label: "Title", type: "text" }, { key: "placeholder", label: "Search placeholder", type: "text" }],
+    render: function (p) {
+      return '<div class="u-searchhead"><div><div class="u-eyebrow" data-edit="eyebrow">' + esc(p.eyebrow) + '</div><h1 class="u-h1" data-edit="title">' + esc(p.title) + '</h1></div>' +
+        '<div class="u-searchbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5" stroke-linecap="round"/></svg><input placeholder="' + esc(p.placeholder) + '" /></div></div>';
+    }
+  });
+
+  R("album-hero", {
+    name: "Album detail", group: "Data", icon: "▣",
+    defaults: { title: "Forms of Silence", artist: "Mira Vale", year: 2026, seed: 3, count: 5, badge: "2026 · 9 tracks" },
+    fields: [{ key: "title", label: "Album", type: "text" }, { key: "artist", label: "Artist", type: "text" }, { key: "year", label: "Year", type: "number" }, { key: "seed", label: "Art seed", type: "number" }, { key: "count", label: "Tracks shown", type: "number" }, { key: "badge", label: "Badge", type: "text" }],
+    render: function (p, ctx) {
+      var rows = ctx.data.tracks.slice(0, p.count || 5).map(function (t, i) {
+        return '<div class="u-row"><span class="u-idx">' + String(i + 1).padStart(2, "0") + '</span><div class="u-meta"><b>' + esc(t.title) + '</b><i>' + esc(t.artist) + '</i></div><span class="u-dur">' + fmt(t.duration * 1000) + '</span></div>';
+      }).join("");
+      return '<div class="u-card"><div class="u-albumhero"><div class="u-ahcover" style="background-image:' + ctx.art(p.seed) + '"></div>' +
+        '<div class="u-ahbody"><div class="u-eyebrow">Album</div><div class="u-ahtitle">' + esc(p.title) + '</div>' +
+        '<div class="u-sub">' + esc(p.artist) + ' · ' + p.year + '</div><div class="u-sub" style="margin-top:6px">' + esc(p.badge) + '</div>' +
+        '<div class="u-playrow"><button class="u-playbtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg></button><button class="u-ghostbtn">Shuffle</button><button class="u-ghostbtn">＋ Library</button></div>' +
+        '<div class="u-list" style="margin-top:14px">' + rows + '</div></div></div></div>';
+    }
+  });
+
+  R("session-heatmap", {
+    name: "Session heatmap", group: "Data", icon: "▦",
+    defaults: { title: "Session heatmap", sub: "Every cell is a track · brighter = smart-shuffle weight", cols: 12, rows: 2 },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "sub", label: "Subtitle", type: "text" }, { key: "cols", label: "Columns", type: "number" }, { key: "rows", label: "Rows", type: "number" }],
+    render: function (p, ctx) {
+      var total = (p.cols || 12) * (p.rows || 2), cells = "";
+      for (var i = 0; i < total; i++) {
+        var t = ctx.data.tracks[i % ctx.data.tracks.length], w = .2 + UI.hash(t.seed * 1.7 + i) * .8;
+        cells += '<div class="u-artcell" title="' + esc(t.title) + '"><i style="background-image:' + ctx.art(t.seed) + ';opacity:' + (.35 + w * .65).toFixed(2) + '"></i><b>' + Math.round(w * 100) + '</b></div>';
+      }
+      return '<div class="u-card"><div class="u-cardhead"><div><h2 class="u-h2">' + esc(p.title) + '</h2><div class="u-sub">' + esc(p.sub) + '</div></div></div><div class="u-arthm">' + cells + '</div></div>';
+    }
+  });
+
+  R("sparkline-stats", {
+    name: "Sparkline stats", group: "Data", icon: "∿",
+    defaults: { a: "Tracks", av: "1,204", b: "Albums", bv: "96", c: "Artists", cv: "43", d: "Hours", dv: "128" },
+    fields: [{ key: "a", label: "1 label", type: "text" }, { key: "av", label: "1 value", type: "text" }, { key: "b", label: "2 label", type: "text" }, { key: "bv", label: "2 value", type: "text" }, { key: "c", label: "3 label", type: "text" }, { key: "cv", label: "3 value", type: "text" }, { key: "d", label: "4 label", type: "text" }, { key: "dv", label: "4 value", type: "text" }],
+    render: function (p, ctx) {
+      var acc = ctx.accentFor(3);
+      function spark(seed) {
+        var pts = [], n = 8; for (var i = 0; i < n; i++) pts.push([i / (n - 1) * 84, 24 - (.2 + UI.hash(seed * 3 + i * 7) * .75) * 22 - 2]);
+        var d = pts.map(function (q, i) { return (i ? "L" : "M") + q[0].toFixed(1) + " " + q[1].toFixed(1); }).join(" ");
+        return '<svg class="u-spark" viewBox="0 0 84 26" preserveAspectRatio="none"><path d="' + d + '" fill="none" stroke="' + acc.css + '" stroke-width="1.6" stroke-linecap="round"/><path d="' + d + ' L84 26 L0 26 Z" fill="' + acc.css + '" opacity=".14"/></svg>';
+      }
+      function card(label, val, seed) { return '<div class="u-stat" style="position:relative"><b>' + esc(val) + '</b><div class="u-slabel">' + esc(label) + '</div>' + spark(seed) + '</div>'; }
+      return '<div class="u-stats" style="grid-template-columns:repeat(4,1fr)">' + card(p.a, p.av, 6) + card(p.b, p.bv, 9) + card(p.c, p.cv, 5) + card(p.d, p.dv, 12) + '</div>';
+    }
+  });
+
+  R("settings-list", {
+    name: "Settings list", group: "Structure", icon: "⚙",
+    defaults: { title: "Playback", items: "Gapless, Crossfade, ReplayGain, Mono downmix, Smart shuffle", on: "1,0,1,0,1" },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "items", label: "Rows (csv)", type: "text" }, { key: "on", label: "On (csv 0/1)", type: "text" }],
+    render: function (p) {
+      var items = csv(p.items), on = csv(p.on).map(Number);
+      var rows = items.map(function (it, i) { return '<div class="u-setrow"><div class="u-sname"><b>' + esc(it) + '</b></div><div class="u-toggle' + (on[i] ? " on" : "") + '" data-toggle><i></i></div></div>'; }).join("");
+      return '<div class="u-card"><div class="u-cardhead"><h2 class="u-h2">' + esc(p.title) + '</h2></div>' + rows + '</div>';
+    },
+    mount: function (el) { el.querySelectorAll("[data-toggle]").forEach(function (t) { t.addEventListener("click", function () { t.classList.toggle("on"); }); }); }
+  });
+
+  R("mini-player", {
+    name: "Mini player", group: "Player", icon: "▭",
+    defaults: { title: "Red Thread", artist: "Mira Vale", seed: 3 },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "artist", label: "Artist", type: "text" }, { key: "seed", label: "Art seed", type: "number" }],
+    render: function (p, ctx) {
+      return '<div class="u-mini"><div class="u-mthumb" style="background-image:' + ctx.art(p.seed) + '"></div><div class="u-mbody"><b>' + esc(p.title) + '</b><i>' + esc(p.artist) + '</i></div>' +
+        '<div class="u-mprog"><i style="width:38%"></i></div><div class="u-mctl">' +
+        '<button class="u-pbtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5.5h2.4v13H7zM19 6v12l-8.5-6z"/></svg></button>' +
+        '<button class="u-pbtn" style="color:var(--accent)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg></button>' +
+        '<button class="u-pbtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14.6 5.5H17v13h-2.4zM5 6l8.5 6L5 18z"/></svg></button></div></div>';
+    }
+  });
+
+  /* ---------------- component blocks ---------------- */
+  R("tabs", {
+    name: "Tabs", group: "Components", icon: "▤",
+    defaults: { items: "Overview, Tracks, Artists, About", active: 0 },
+    fields: [{ key: "items", label: "Tabs (csv)", type: "text" }, { key: "active", label: "Active index", type: "number" }],
+    render: function (p) { return '<div class="u-tabs">' + csv(p.items).map(function (t, i) { return '<button class="u-tab' + (i === p.active ? " on" : "") + '" data-tab>' + esc(t) + '</button>'; }).join("") + '</div>'; },
+    mount: function (el) { el.querySelectorAll("[data-tab]").forEach(function (b) { b.addEventListener("click", function () { el.querySelectorAll("[data-tab]").forEach(function (x) { x.classList.remove("on"); }); b.classList.add("on"); }); }); }
+  });
+
+  R("toggle-group", {
+    name: "Toggle group", group: "Components", icon: "▥",
+    defaults: { items: "Week, Month, Year", active: 0 },
+    fields: [{ key: "items", label: "Options (csv)", type: "text" }, { key: "active", label: "Active index", type: "number" }],
+    render: function (p) { return '<div class="u-tg">' + csv(p.items).map(function (t, i) { return '<button class="' + (i === p.active ? "on" : "") + '" data-tg>' + esc(t) + '</button>'; }).join("") + '</div>'; },
+    mount: function (el) { el.querySelectorAll("[data-tg]").forEach(function (b) { b.addEventListener("click", function () { el.querySelectorAll("[data-tg]").forEach(function (x) { x.classList.remove("on"); }); b.classList.add("on"); }); }); }
+  });
+
+  R("callout", {
+    name: "Callout", group: "Components", icon: "!",
+    defaults: { title: "Depth engine active", body: "Per-track masks are computed on a background worker and cached locally." },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "body", label: "Body", type: "textarea" }],
+    render: function (p) {
+      return '<div class="u-callout"><div class="u-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9"/></svg></div>' +
+        '<div><b data-edit="title">' + esc(p.title) + '</b><p data-edit="body">' + esc(p.body) + '</p></div></div>';
+    }
+  });
+
+  R("key-value", {
+    name: "Key / value list", group: "Components", icon: ":",
+    defaults: { title: "Signal", rows: "Codec:FLAC, Bit depth:24-bit, Sample rate:96 kHz, Channels:2, Bitrate:2304 kbps" },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "rows", label: "Rows (k:v, ...)", type: "textarea" }],
+    render: function (p) {
+      var rows = String(p.rows || "").split(",").map(function (r) { var i = r.indexOf(":"); if (i < 0) return ""; return '<dt>' + esc(r.slice(0, i).trim()) + '</dt><dd>' + esc(r.slice(i + 1).trim()) + '</dd>'; }).join("");
+      return '<div class="u-card"><div class="u-cardhead"><h2 class="u-h2">' + esc(p.title) + '</h2></div><dl class="u-kv">' + rows + '</dl></div>';
+    }
+  });
+
+  R("timeline", {
+    name: "Activity timeline", group: "Components", icon: "⋮",
+    defaults: { title: "Recent activity", count: 5 },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "count", label: "Rows", type: "number" }],
+    render: function (p, ctx) {
+      var rows = ctx.data.tracks.slice(0, p.count || 5).map(function (t) { return '<div class="u-tlrow"><span class="u-tldot"></span><div class="u-tlbody"><b>' + esc(t.title) + '</b><span>' + esc(t.artist) + ' · ' + esc(t.album) + '</span></div><span class="u-tltime">' + fmt(t.duration * 1000) + '</span></div>'; }).join("");
+      return '<div class="u-card"><div class="u-cardhead"><h2 class="u-h2">' + esc(p.title) + '</h2></div><div class="u-tl">' + rows + '</div></div>';
+    }
+  });
+
+  R("data-table", {
+    name: "Data table", group: "Data", icon: "▦",
+    defaults: { title: "Top tracks", cols: "Track, Artist, Plays, Length", count: 6 },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "cols", label: "Columns (csv)", type: "text" }, { key: "count", label: "Rows", type: "number" }],
+    render: function (p, ctx) {
+      var cols = csv(p.cols);
+      var head = cols.map(function (c, i) { return '<th' + (i >= 2 ? ' class="num"' : "") + '>' + esc(c) + '</th>'; }).join("");
+      var body = ctx.data.tracks.slice(0, p.count || 6).map(function (t) {
+        var cells = [t.title, t.artist, t.plays, fmt(t.duration * 1000)];
+        return '<tr>' + cells.map(function (v, i) { return '<td' + (i >= 2 ? ' class="num"' : "") + '>' + esc(v) + '</td>'; }).join("") + '</tr>';
+      }).join("");
+      return '<div class="u-card"><div class="u-cardhead"><h2 class="u-h2">' + esc(p.title) + '</h2></div><table class="u-table"><thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table></div>';
+    }
+  });
+
+  R("chip-row", {
+    name: "Chip row", group: "Components", icon: "⬭",
+    defaults: { items: "Ambient, Electronic, Dream pop, Instrumental, Drone", active: 0 },
+    fields: [{ key: "items", label: "Chips (csv)", type: "text" }, { key: "active", label: "Active index", type: "number" }],
+    render: function (p) { return '<div class="u-chips">' + csv(p.items).map(function (t, i) { return '<span class="u-chip' + (i === p.active ? " on" : "") + '">' + esc(t) + '</span>'; }).join("") + '</div>'; }
+  });
+
+  R("avatar-row", {
+    name: "Avatar row", group: "Components", icon: "●",
+    defaults: { title: "Top listeners", count: 6 },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "count", label: "Count", type: "number" }],
+    render: function (p, ctx) {
+      var av = ""; for (var i = 0; i < (p.count || 6); i++) av += '<span class="u-av" style="background-image:' + ctx.art(ctx.data.tracks[i % ctx.data.tracks.length].seed) + '"></span>';
+      return '<div class="u-card"><div class="u-cardhead"><h2 class="u-h2">' + esc(p.title) + '</h2></div><div class="u-avatars">' + av + '</div></div>';
+    }
+  });
+
+  R("progress-ring-card", {
+    name: "Progress ring card", group: "Data", icon: "◍",
+    defaults: { label: "Monthly goal", value: "72", sub: "of 40 hours", progress: 72 },
+    fields: [{ key: "label", label: "Label", type: "text" }, { key: "value", label: "Big value", type: "text" }, { key: "sub", label: "Sub", type: "text" }, { key: "progress", label: "Progress %", type: "number" }],
+    render: function (p, ctx) { var acc = ctx.accentFor(3);
+      return '<div class="u-card"><div class="u-ringstat">' + ctx.ringSvg((p.progress || 0) / 100, acc, 8, 120) + '<div class="u-rsval"><b>' + esc(p.value) + '</b><span>' + esc(p.label) + ' · ' + esc(p.sub) + '</span></div></div></div>';
+    }
+  });
+
+  R("lyrics-panel", {
+    name: "Lyrics panel", group: "Player", icon: "♪",
+    defaults: { title: "Lyrics", current: 2 },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "current", label: "Current line", type: "number" }],
+    render: function (p) {
+      var lines = ["I'm weightless", "drifting through the static", "every note a breath", "nothing here is heavy", "let the signal carry me", "and the world goes quiet"];
+      return '<div class="u-card"><div class="u-cardhead"><h2 class="u-h2">' + esc(p.title) + '</h2></div><div class="u-lyrics">' + lines.map(function (l, i) { return '<div class="u-line' + (i === p.current ? " cur" : "") + '">' + esc(l) + '</div>'; }).join("") + '</div></div>';
+    }
+  });
+
+  R("notification-list", {
+    name: "Notifications", group: "Components", icon: "◔",
+    defaults: { title: "Activity", items: "Library scan complete, New album added, Depth model updated", times: "just now, 2m, 1h" },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "items", label: "Items (csv)", type: "text" }, { key: "times", label: "Times (csv)", type: "text" }],
+    render: function (p) {
+      var it = csv(p.items), tm = csv(p.times);
+      var rows = it.map(function (t, i) { return '<div class="u-notif"><span class="u-ndot"></span><div><b>' + esc(t) + '</b><span>System</span></div><time>' + esc(tm[i] || "") + '</time></div>'; }).join("");
+      return '<div class="u-card"><div class="u-cardhead"><h2 class="u-h2">' + esc(p.title) + '</h2></div><div style="display:flex;flex-direction:column;gap:10px">' + rows + '</div></div>';
+    }
+  });
+
+  R("equalizer", {
+    name: "Equalizer bars", group: "Signal", icon: "▮",
+    defaults: { title: "Equalizer", bars: 24 },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "bars", label: "Bars", type: "number" }],
+    render: function (p, ctx) { var acc = ctx.accentFor(3), n = p.bars || 24, bars = "";
+      for (var i = 0; i < n; i++) { var h = 20 + UI.hash(i * 1.7) * 70; bars += '<i style="height:' + h.toFixed(0) + '%;animation-delay:' + (-(i % 7) * .18) + 's"></i>'; }
+      return '<div class="u-card"><div class="u-cardhead"><h2 class="u-h2">' + esc(p.title) + '</h2></div><div class="u-eqbars">' + bars + '</div></div>';
+    }
+  });
+
+  R("quote", {
+    name: "Quote", group: "Structure", icon: "❝",
+    defaults: { text: "Music is the space between the notes.", cite: "Claude Debussy" },
+    fields: [{ key: "text", label: "Quote", type: "textarea" }, { key: "cite", label: "Attribution", type: "text" }],
+    render: function (p) { return '<div class="u-card"><blockquote class="u-quote" data-edit="text">“' + esc(p.text) + '”<cite data-edit="cite">— ' + esc(p.cite) + '</cite></blockquote></div>'; }
+  });
+
+  R("media-list", {
+    name: "Media list", group: "Components", icon: "▤",
+    defaults: { title: "Continue listening", count: 4 },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "count", label: "Rows", type: "number" }],
+    render: function (p, ctx) {
+      var rows = ctx.data.tracks.slice(0, p.count || 4).map(function (t) { return '<div class="u-media"><div class="u-mthumb" style="background-image:' + ctx.art(t.seed) + '"></div><div class="u-mbody"><b>' + esc(t.title) + '</b><i>' + esc(t.artist) + '</i></div><div class="u-mactions"><button class="u-pbtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg></button></div></div>'; }).join("");
+      return '<div class="u-card"><div class="u-cardhead"><h2 class="u-h2">' + esc(p.title) + '</h2></div><div style="display:flex;flex-direction:column;gap:10px">' + rows + '</div></div>';
+    }
+  });
+
+  R("divider", {
+    name: "Divider", group: "Structure", icon: "—",
+    defaults: { space: 0 },
+    fields: [{ key: "space", label: "Space (px)", type: "number" }],
+    render: function (p) { return '<div style="padding:' + (p.space || 0) + 'px 0"><hr class="u-hr" /></div>'; }
+  });
+
+  R("spacer", {
+    name: "Spacer", group: "Structure", icon: "␣",
+    defaults: { height: 48 },
+    fields: [{ key: "height", label: "Height (px)", type: "number" }],
+    render: function (p) { return '<div style="height:' + (p.height || 48) + 'px"></div>'; }
+  });
+
+  /* ---------------- wild mashup blocks ---------------- */
+  function ticksSvgHtml(n, size) {
+    var out = '<svg viewBox="0 0 100 100" width="' + size + '" height="' + size + '">';
+    for (var i = 0; i < n; i++) {
+      var a = i / n * 360 - 90, r1 = 38, r2 = 47;
+      var x1 = 50 + r1 * Math.cos(a * Math.PI / 180), y1 = 50 + r1 * Math.sin(a * Math.PI / 180);
+      var x2 = 50 + r2 * Math.cos(a * Math.PI / 180), y2 = 50 + r2 * Math.sin(a * Math.PI / 180);
+      out += '<line class="u-tk" data-i="' + i + '" x1="' + x1.toFixed(2) + '" y1="' + y1.toFixed(2) + '" x2="' + x2.toFixed(2) + '" y2="' + y2.toFixed(2) + '" stroke-width="1.7"/>';
+    }
+    return out + '</svg>';
+  }
+  function paintTicks(el, percent, n) {
+    var on = Math.round(percent / 100 * n), lines = el.querySelectorAll(".u-tk");
+    for (var i = 0; i < lines.length; i++) {
+      var isOn = i < on;
+      lines[i].classList.toggle("on", isOn);
+      lines[i].classList.toggle("hot", isOn && i >= on - 6);
+    }
+  }
+
+  R("radial-ticks", {
+    name: "Radial ticks (processing)", group: "Signal", icon: "◍",
+    defaults: { percent: 20, label: "processing", sub: "Our AI is processing data", ticks: 60, size: 220 },
+    fields: [{ key: "percent", label: "Percent", type: "number" }, { key: "label", label: "Label", type: "text" }, { key: "sub", label: "Sub", type: "text" }, { key: "ticks", label: "Ticks", type: "number" }, { key: "size", label: "Size (px)", type: "number" }],
+    render: function (p) {
+      var n = p.ticks || 60, s = p.size || 220;
+      return '<div class="u-card" style="display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center">' +
+        '<div class="u-ticks" data-ticks style="width:' + s + 'px;height:' + s + 'px">' + ticksSvgHtml(n, s) +
+        '<div class="u-tkcore"><div class="u-tkpct" data-pct>' + (p.percent || 0) + '%</div><div class="u-tklbl">' + esc(p.label) + '</div></div></div>' +
+        '<div style="font-size:14px;font-weight:600">' + esc(p.sub) + '</div></div>';
+    },
+    mount: function (el, p) { paintTicks(el.querySelector("[data-ticks]"), p.percent || 0, p.ticks || 60); }
+  });
+
+  R("progress-dock", {
+    name: "Progress dock (waveform unlock)", group: "Player", icon: "◉",
+    defaults: { ticks: 56, bars: 48, size: 120, note: "waveform unlocks as playback advances" },
+    fields: [{ key: "ticks", label: "Ticks", type: "number" }, { key: "bars", label: "Waveform bars", type: "number" }, { key: "size", label: "Gauge size", type: "number" }, { key: "note", label: "Note", type: "text" }],
+    render: function (p, ctx) {
+      var n = p.ticks || 56, bars = p.bars || 48, s = p.size || 120, bh = "";
+      for (var i = 0; i < bars; i++) { var h = 18 + UI.hash(i * 1.9 + 3) * 78; bh += '<i data-b="' + i + '" style="height:' + h.toFixed(0) + '%"></i>'; }
+      return '<div class="u-dock"><div class="u-ticks u-dticks" data-ticks style="width:' + s + 'px;height:' + s + 'px">' + ticksSvgHtml(n, s) +
+        '<div class="u-tkcore"><div class="u-tkpct" data-pct style="font-size:28px">0%</div></div></div>' +
+        '<div class="u-dwave"><div class="u-dunlock" data-bars>' + bh + '</div><div class="u-dmeta"><span data-el>0:00</span><span>' + esc(p.note) + '</span><span data-dur>' + fmt(ctx.data.now.duration) + '</span></div></div>' +
+        '<div class="u-dinfo"><b data-state>Processing</b><span>unlock</span></div></div>';
+    },
+    mount: function (el, p) {
+      var ticks = el.querySelector("[data-ticks]"), bars = el.querySelector("[data-bars]").children;
+      var pctEl = el.querySelector("[data-pct]"), elEl = el.querySelector("[data-el]"), stEl = el.querySelector("[data-state]");
+      var n = p.ticks || 56, nb = bars.length;
+      (function loop() {
+        if (!el.isConnected) return; requestAnimationFrame(loop);
+        var pos = UI.getPos(), dur = UI.getDur(), pct = Math.max(0, Math.min(100, pos / dur * 100));
+        paintTicks(ticks, pct, n);
+        var on = Math.round(pct / 100 * nb);
+        for (var i = 0; i < nb; i++) bars[i].classList.toggle("on", i < on);
+        if (pctEl) pctEl.textContent = Math.round(pct) + "%";
+        if (elEl) elEl.textContent = fmt(pos);
+        if (stEl) stEl.textContent = pct >= 99.5 ? "Ready" : "Processing";
+      })();
+    }
+  });
+
+  R("candles", {
+    name: "Candlestick chart", group: "Data", icon: "▮",
+    defaults: { title: "Daily plays", sub: "Last 30 days", count: 30 },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "sub", label: "Subtitle", type: "text" }, { key: "count", label: "Candles", type: "number" }],
+    render: function (p) { return '<div class="u-card"><div class="u-cardhead"><div><h2 class="u-h2">' + esc(p.title) + '</h2><div class="u-sub">' + esc(p.sub) + '</div></div></div><canvas class="u-candles" data-candles style="height:190px"></canvas></div>'; },
+    mount: function (el, p, ctx) {
+      var c = el.querySelector("[data-candles]");
+      bindDraw(c, function () {
+        var dpr = Math.min(2, window.devicePixelRatio || 1), r = c.getBoundingClientRect();
+        c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr);
+        var x = c.getContext("2d"); x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, r.width, r.height);
+        var n = p.count || 30, cw = r.width / n, series = [];
+        for (var k = 0; k < n; k++) series.push(50 + Math.sin(k * 0.45 + 1) * 18 + (UI.hash(k * 2.3 + 1) - .5) * 14);
+        for (var i = 0; i < n; i++) {
+          var o = i ? series[i - 1] : series[0], cl = series[i];
+          var hi = Math.max(o, cl) + UI.hash(i * 5.1) * 6, lo = Math.min(o, cl) - UI.hash(i * 3.7) * 6;
+          var up = cl >= o, col = up ? "#2fbf71" : "#e05a5a";
+          var cx = i * cw + cw / 2, sc = (r.height - 20) / 100;
+          x.strokeStyle = col; x.fillStyle = col; x.lineWidth = 1;
+          x.beginPath(); x.moveTo(cx, 10 + (100 - hi) * sc); x.lineTo(cx, 10 + (100 - lo) * sc); x.stroke();
+          var y1 = 10 + (100 - Math.max(o, cl)) * sc, h = Math.max(2, Math.abs(cl - o) * sc);
+          x.fillRect(cx - cw * .3, y1, cw * .6, h);
+        }
+      });
+    }
+  });
+
+  R("circular-gauge", {
+    name: "Circular gauge", group: "Data", icon: "◎",
+    defaults: { title: "Dynamics now", value: "34.2", unit: "%", sub: "Dynamics now", progress: 34 },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "value", label: "Value", type: "text" }, { key: "unit", label: "Unit", type: "text" }, { key: "progress", label: "Progress %", type: "number" }],
+    render: function (p, ctx) {
+      var acc = ctx.accentFor(3), prog = Math.max(0, Math.min(1, (p.progress || 0) / 100)), c = 2 * Math.PI * 44;
+      return '<div class="u-card"><div class="u-cardhead"><h2 class="u-h2">' + esc(p.title) + '</h2></div><div class="u-gauge">' +
+        '<svg viewBox="0 0 100 100" width="150" height="150"><circle cx="50" cy="50" r="44" fill="none" stroke="var(--well)" stroke-width="9"/>' +
+        '<circle cx="50" cy="50" r="44" fill="none" stroke="' + acc.css + '" stroke-width="9" stroke-linecap="round" transform="rotate(-90 50 50)" stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + (c * (1 - prog)).toFixed(1) + '" style="filter:drop-shadow(0 0 6px ' + acc.glow + ')"/>' +
+        '<text x="50" y="47" text-anchor="middle" font-size="17" font-weight="800" fill="var(--text)">' + esc(p.value) + '</text>' +
+        '<text x="50" y="60" text-anchor="middle" font-size="8" fill="var(--muted)">' + esc(p.unit) + '</text></svg>' +
+        '<div class="u-gval"><b>' + esc(p.value) + esc(p.unit) + '</b><span>' + esc(p.sub) + '</span></div></div></div>';
+    }
+  });
+
+  R("ribbons", {
+    name: "HUD ribbons", group: "Signal", icon: "∿",
+    defaults: { title: "Signal flow", height: 180, count: 5 },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "height", label: "Height (px)", type: "number" }, { key: "count", label: "Ribbons", type: "number" }],
+    render: function (p) { return '<div class="u-card"><div class="u-cardhead"><h2 class="u-h2">' + esc(p.title) + '</h2></div><canvas class="u-ribbons" data-rib style="height:' + (p.height || 180) + 'px"></canvas></div>'; },
+    mount: function (el, p, ctx) {
+      var c = el.querySelector("[data-rib]"), acc = ctx.accentFor(3), t0 = performance.now();
+      (function loop(ts) {
+        if (!el.isConnected) return; requestAnimationFrame(loop);
+        var dpr = Math.min(2, window.devicePixelRatio || 1), r = c.getBoundingClientRect();
+        c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr);
+        var x = c.getContext("2d"); x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, r.width, r.height);
+        var t = (ts - t0) / 1000, n = p.count || 5, h = r.height, w = r.width;
+        for (var k = 0; k < n; k++) {
+          var yy = h * (0.22 + k * 0.14), amp = 18 + k * 6, hue = (acc.h + k * 26) % 360;
+          x.beginPath(); x.moveTo(-20, yy);
+          x.bezierCurveTo(w * .3, yy + Math.sin(t * .8 + k) * amp, w * .7, yy - Math.sin(t * .7 + k) * amp, w + 20, yy);
+          x.strokeStyle = "hsl(" + hue + " 85% 62% / .7)"; x.lineWidth = 2; x.shadowColor = "hsl(" + hue + " 85% 62% / .8)"; x.shadowBlur = 12; x.stroke();
+        }
+        x.shadowBlur = 0;
+      })();
+    }
+  });
+
+  R("node-net", {
+    name: "Node network", group: "Signal", icon: "⁂",
+    defaults: { title: "Connections", height: 200, nodes: 42 },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "height", label: "Height (px)", type: "number" }, { key: "nodes", label: "Nodes", type: "number" }],
+    render: function (p) { return '<div class="u-card"><div class="u-cardhead"><h2 class="u-h2">' + esc(p.title) + '</h2></div><canvas class="u-nodes" data-net style="height:' + (p.height || 200) + 'px"></canvas></div>'; },
+    mount: function (el, p, ctx) {
+      var c = el.querySelector("[data-net]"), acc = ctx.accentFor(3), N = p.nodes || 42, t0 = performance.now();
+      var pts = []; for (var i = 0; i < N; i++) pts.push({ x: UI.hash(i * 3.1), y: UI.hash(i * 7.7), vx: (UI.hash(i * 1.3) - .5) * .0006, vy: (UI.hash(i * 2.9) - .5) * .0006 });
+      (function loop(ts) {
+        if (!el.isConnected) return; requestAnimationFrame(loop);
+        var dpr = Math.min(2, window.devicePixelRatio || 1), r = c.getBoundingClientRect();
+        c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr);
+        var x = c.getContext("2d"); x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, r.width, r.height);
+        var w = r.width, h = r.height;
+        pts.forEach(function (o) { o.x += o.vx; o.y += o.vy; if (o.x < 0 || o.x > 1) o.vx *= -1; if (o.y < 0 || o.y > 1) o.vy *= -1; });
+        for (var a = 0; a < N; a++) for (var b = a + 1; b < N; b++) {
+          var dx = (pts[a].x - pts[b].x) * w, dy = (pts[a].y - pts[b].y) * h, d = Math.sqrt(dx * dx + dy * dy);
+          if (d < 110) { x.strokeStyle = "hsl(" + acc.h + " " + acc.s + "% 62% / " + (0.28 * (1 - d / 110)).toFixed(2) + ")"; x.lineWidth = 1; x.beginPath(); x.moveTo(pts[a].x * w, pts[a].y * h); x.lineTo(pts[b].x * w, pts[b].y * h); x.stroke(); }
+        }
+        pts.forEach(function (o) { x.fillStyle = "hsl(" + acc.h + " " + acc.s + "% 68% / .9)"; x.beginPath(); x.arc(o.x * w, o.y * h, 1.8, 0, 7); x.fill(); });
+      })();
+    }
+  });
+
+  R("arc-index", {
+    name: "WOVE arc index", group: "Structure", icon: "◐",
+    defaults: { active: 3, count: 5, title: "Ambient", sub: "already on and never turns off." },
+    fields: [{ key: "active", label: "Active index", type: "number" }, { key: "count", label: "Count", type: "number" }, { key: "title", label: "Title", type: "text" }, { key: "sub", label: "Sub", type: "text" }],
+    render: function (p) {
+      var n = p.count || 5, nums = "";
+      for (var i = 1; i <= n; i++) {
+        var t = (i - 1) / (n - 1), ang = Math.PI * (0.92 - t * 0.92), rad = 42;
+        var lx = 30 + Math.cos(ang) * rad, ly = 50 - Math.sin(ang) * rad;
+        nums += '<span class="u-arcnum' + (i === p.active ? " on" : "") + '" style="left:' + lx.toFixed(1) + '%;top:' + ly.toFixed(1) + '%">' + String(i).padStart(2, "0") + '</span>';
+      }
+      return '<div class="u-card"><div class="u-arc"><div class="u-arcbig">' + String(p.active).padStart(2, "0") + '</div><div class="u-arcmeta"><b>' + esc(p.title) + '</b><span>' + esc(p.sub) + '</span></div><div class="u-arcnums">' + nums + '</div></div></div>';
+    }
+  });
+
+  R("soft-controls", {
+    name: "Soft controls", group: "Components", icon: "⬭",
+    defaults: { input: "username@mail.com", btn: "Sign Up" },
+    fields: [{ key: "input", label: "Input value", type: "text" }, { key: "btn", label: "Button", type: "text" }],
+    render: function (p) { return '<div class="u-card"><div class="u-softrow"><div class="u-softinput">' + esc(p.input) + '</div><button class="u-softbtn primary">' + esc(p.btn) + '</button><div class="u-softtoggle on" data-stog><i></i></div><button class="u-softbtn">Share</button></div></div>'; },
+    mount: function (el) { var t = el.querySelector("[data-stog]"); if (t) t.addEventListener("click", function () { t.classList.toggle("on"); }); }
+  });
+
+  R("tx-list", {
+    name: "Transactions / rows", group: "Data", icon: "⇅",
+    defaults: { title: "Transactions", count: 5 },
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "count", label: "Rows", type: "number" }],
+    render: function (p, ctx) {
+      var rows = ctx.data.tracks.slice(0, p.count || 5).map(function (t, i) {
+        var d = (UI.hash(t.seed) * 20 - 6), up = d >= 0;
+        return '<div class="u-tx"><div class="u-txic">' + (up ? "▲" : "▼") + '</div><div class="u-txname"><b>' + esc(t.title) + '</b><span>' + esc(t.artist) + ' · ' + esc(t.album) + '</span></div>' +
+          '<div class="u-txval"><b>' + t.plays + ' plays</b><span class="u-delta ' + (up ? "up" : "down") + '">' + (up ? "+" : "") + d.toFixed(1) + '%</span></div></div>';
+      }).join("");
+      return '<div class="u-card"><div class="u-cardhead"><h2 class="u-h2">' + esc(p.title) + '</h2></div>' + rows + '</div>';
+    }
+  });
+
+  R("years", {
+    name: "Year timeline", group: "Components", icon: "—",
+    defaults: { items: "2019, 2020, 2021, 2022", active: 0 },
+    fields: [{ key: "items", label: "Years (csv)", type: "text" }, { key: "active", label: "Active index", type: "number" }],
+    render: function (p) { return '<div class="u-card"><div class="u-years">' + csv(p.items).map(function (y, i) { return '<div class="u-yr' + (i === p.active ? " on" : "") + '">' + esc(y) + '</div>'; }).join("") + '</div></div>'; }
+  });
+
+  window.UIBlockOrder = ["page-header", "search-header", "section-head", "text-block", "quote", "callout", "divider", "spacer", "arc-index", "hero", "up-next", "signal-tiles", "now-playing", "mini-player", "progress-dock", "lyrics-panel", "stat-cards", "sparkline-stats", "progress-ring-card", "circular-gauge", "album-hero", "bar-chart", "line-chart", "candles", "heatmap", "session-heatmap", "radial-rings", "genre-mix", "track-list", "data-table", "tx-list", "album-grid", "mood-cards", "media-list", "timeline", "notification-list", "key-value", "tabs", "toggle-group", "chip-row", "avatar-row", "years", "settings-list", "soft-controls", "spectrum", "waveform", "equalizer", "vumeters", "knobs", "processing-chain", "radial-ticks", "ribbons", "node-net"];
+})();
+</script>
+<script>(function(){var s=document.createElement("style");s.textContent=window.UIComponentCss||"";document.head.appendChild(s);var st={"theme":"signature","skin":"hud","tokens":{"bg":"#08090f","bg2":"#0b0d16","panel":"#0e1119","panel2":"#141826","well":"#06070c","line":"#1c2230","line2":"#2a3346","text":"#eaf0ff","muted":"#8b97b3","muted2":"#5b657e","radius":14,"gap":16,"depth":2,"font":"\"Inter\",\"SF Pro Display\",system-ui,sans-serif"},"accent":{"mode":"dynamic","hue":196,"sat":88,"light":58},"layout":{"sidebar":true,"topbar":false,"playerbar":true},"data":{"now":{"title":"Red Thread","artist":"Mira Vale","album":"Forms of Silence · 2026","seed":3,"duration":258000},"tracks":[{"title":"Red Thread","artist":"Mira Vale","album":"Forms of Silence","seed":3,"duration":258,"plays":42},{"title":"Afterimage","artist":"North Index","album":"Intervals","seed":11,"duration":222,"plays":33},{"title":"Still Water","artist":"Ana Lune","album":"Soft Machines","seed":19,"duration":306,"plays":24},{"title":"Pale Distance","artist":"Common Field","album":"Contour Lines","seed":7,"duration":271,"plays":18},{"title":"Intervals","artist":"North Index","album":"Intervals","seed":23,"duration":341,"plays":15},{"title":"Soft Machines","artist":"Ana Lune","album":"Soft Machines","seed":29,"duration":288,"plays":12},{"title":"Contour Lines","artist":"Common Field","album":"Contour Lines","seed":13,"duration":254,"plays":9},{"title":"Quiet Sequence","artist":"Mira Vale","album":"Forms of Silence","seed":17,"duration":198,"plays":7}],"albums":[{"title":"Forms of Silence","artist":"Mira Vale","seed":3,"year":2026},{"title":"Intervals","artist":"North Index","seed":11,"year":2025},{"title":"Soft Machines","artist":"Ana Lune","seed":19,"year":2026},{"title":"Contour Lines","artist":"Common Field","seed":7,"year":2024}],"moods":[{"name":"Ambient","albums":12,"hue":2},{"name":"Electronic","albums":19,"hue":176},{"name":"Dream pop","albums":26,"hue":45},{"name":"Instrumental","albums":33,"hue":205}],"stats":{"hours":"38.4","tracks":"624","albums":"86","artists":"54","delta":"+12% from August","discoveries":"47 were new discoveries"}},"blocks":[{"id":"b107","type":"page-header","span":12,"props":{"eyebrow":"Now Playing","title":"Stay with the sound.","sub":""},"style":{}},{"id":"b108","type":"hero","span":8,"props":{"title":"Red Thread","artist":"Mira Vale","album":"Forms of Silence · 2026","seed":3,"source":"Forms of Silence","badges":"FLAC, 24-bit, 96 kHz, Lossless","wave":true,"spec":true,"heart":true,"height":420,"depth":true,"shape":"blob","count":2},"style":{}},{"id":"b109","type":"up-next","span":4,"props":{"title":"Up next","sub":"A quiet sequence · 13 min","count":3,"signal":true},"style":{}},{"id":"b110","type":"progress-dock","span":12,"props":{"ticks":56,"bars":48,"size":120,"note":"waveform unlocks as playback advances"},"style":{}},{"id":"b111","type":"sparkline-stats","span":7,"props":{"a":"Tracks","av":"1,204","b":"Albums","bv":"96","c":"Artists","cv":"43","d":"Hours","dv":"128"},"style":{}},{"id":"b112","type":"circular-gauge","span":5,"props":{"title":"Dynamics now","value":"34.2","unit":"%","sub":"Dynamics now","progress":34},"style":{}},{"id":"b113","type":"track-list","span":12,"props":{"title":"For this hour","sub":"Selections shaped by your library","count":6,"numbered":true,"plays":false},"style":{}}]};UI.render(st,document.getElementById("export-root"));})();</script>
+</body></html>

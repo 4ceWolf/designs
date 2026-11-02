@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Wave — waveform interface</title>
+<style>
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; margin:0; }
+  body{ background:#04050a; color:#eef4ff; overflow:hidden; font:14px/1.4 "Inter",system-ui,sans-serif; -webkit-font-smoothing:antialiased; cursor:crosshair; }
+  canvas{ position:fixed; inset:0; width:100%; height:100%; }
+  .overlay{ position:fixed; inset:0; display:flex; flex-direction:column; justify-content:space-between; pointer-events:none; padding:34px 40px; }
+  .top{ display:flex; align-items:center; gap:16px; }
+  .mark{ font-weight:800; letter-spacing:7px; text-transform:uppercase; font-size:14px; }
+  .nav{ margin-left:auto; display:flex; gap:22px; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#7f8aa3; }
+  .nav b{ color:#2ad4ff; }
+  .hero{ margin-bottom:6px; }
+  .eyebrow{ font-size:11px; letter-spacing:3px; text-transform:uppercase; color:#2ad4ff; margin-bottom:12px; }
+  h1{ margin:0; font-size:clamp(48px,11vw,150px); font-weight:800; letter-spacing:-5px; line-height:.9; }
+  .sub{ margin-top:14px; font-size:clamp(16px,2vw,24px); color:#9fb0cc; }
+  .bottom{ display:flex; align-items:flex-end; gap:24px; }
+  .times{ font-family:ui-monospace,monospace; font-size:14px; color:#9fb0cc; letter-spacing:1px; }
+  .times b{ color:#eef4ff; }
+  .hint{ margin-left:auto; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#5b657e; }
+  .scan{ position:fixed; inset:0; pointer-events:none; background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px); mix-blend-mode:overlay; }
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div class="overlay">
+  <div class="top">
+    <span class="mark">Wave</span>
+    <div class="nav"><span><b>Now</b></span><span>Library</span><span>Radio</span><span>Signal</span></div>
+  </div>
+  <div>
+    <div class="hero">
+      <div class="eyebrow">Playing · Forms of Silence</div>
+      <h1 id="title">Red<br/>Thread</h1>
+      <div class="sub" id="artist">Mira Vale</div>
+    </div>
+  </div>
+  <div class="bottom">
+    <div class="times"><b id="cur">0:00</b> / <span id="dur">4:18</span></div>
+    <div class="hint">Click or drag the waveform to scrub</div>
+  </div>
+</div>
+<div class="scan"></div>
+<script>
+(function(){
+  "use strict";
+  var cv=document.getElementById("cv"), ctx=cv.getContext("2d");
+  function hash(n){ var s=Math.sin(n*127.1+311.7)*43758.5453; return s-Math.floor(s); }
+  var BARS=520, peaks=[];
+  for(var i=0;i<BARS;i++){ var env=Math.pow(Math.sin(i/BARS*Math.PI),0.6); peaks.push(0.15+env*(0.35+hash(i*1.7)*0.65)); }
+  var dur=258000, pos=0, playing=true, dragging=false;
+
+  function resize(){ var dpr=Math.min(2,window.devicePixelRatio||1); cv.width=innerWidth*dpr; cv.height=innerHeight*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); }
+  addEventListener("resize",resize); resize();
+
+  function seek(e){ var r=cv.getBoundingClientRect(); pos=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*dur; }
+  addEventListener("pointerdown",function(e){ dragging=true; seek(e); });
+  addEventListener("pointermove",function(e){ if(dragging) seek(e); });
+  addEventListener("pointerup",function(){ dragging=false; });
+
+  var t0=performance.now();
+  function frame(ts){
+    requestAnimationFrame(frame);
+    var dt=Math.min(48,ts-(frame._p||ts)); frame._p=ts;
+    if(playing && !dragging){ pos+=dt*16; if(pos>dur) pos=0; }
+    var w=innerWidth, h=innerHeight, mid=h*0.5, prog=pos/dur;
+    ctx.clearRect(0,0,w,h);
+    /* backdrop glow */
+    var bg=ctx.createRadialGradient(w*0.5,mid,0,w*0.5,mid,Math.max(w,h)*0.7);
+    bg.addColorStop(0,"rgba(42,212,255,.08)"); bg.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=bg; ctx.fillRect(0,0,w,h);
+    /* bars */
+    var bw=w/BARS;
+    for(var i=0;i<BARS;i++){
+      var x=i*bw, bh=peaks[i]*h*0.44, played=(i/BARS)<=prog;
+      var wob=1+0.06*Math.sin(ts/240+i*0.2);
+      var g=ctx.createLinearGradient(0,mid-bh,0,mid+bh);
+      if(played){ g.addColorStop(0,"rgba(42,212,255,.95)"); g.addColorStop(1,"rgba(90,150,255,.85)"); }
+      else { g.addColorStop(0,"rgba(255,255,255,.22)"); g.addColorStop(1,"rgba(255,255,255,.12)"); }
+      ctx.fillStyle=g;
+      ctx.fillRect(x,mid-bh*wob,bw*0.62,bh*2*wob);
+    }
+    /* playhead */
+    var px=prog*w;
+    var pg=ctx.createLinearGradient(px-40,0,px+40,0);
+    pg.addColorStop(0,"rgba(255,255,255,0)"); pg.addColorStop(.5,"rgba(255,255,255,.5)"); pg.addColorStop(1,"rgba(255,255,255,0)");
+    ctx.fillStyle=pg; ctx.fillRect(px-40,0,80,h);
+    ctx.fillStyle="#fff"; ctx.fillRect(px-1,0,2,h);
+    var s=Math.floor(pos/1000),m=Math.floor(s/60);
+    document.getElementById("cur").textContent=m+":"+String(s%60).padStart(2,"0");
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

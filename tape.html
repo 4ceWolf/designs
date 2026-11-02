@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tape — cassette deck</title>
+<style>
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; margin:0; }
+  body{ background:radial-gradient(80% 80% at 50% 20%,#1a1a1f,#0a0a0c 75%); color:#e8e2d4; display:grid; place-items:center;
+    font:13px/1.4 "Inter",system-ui,sans-serif; -webkit-font-smoothing:antialiased; overflow:hidden; }
+  .deck{ width:min(960px,94vw); border-radius:20px; padding:22px; position:relative;
+    background:linear-gradient(180deg,#34343c,#1e1e24 55%,#26262c);
+    box-shadow:0 40px 90px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.14),inset 0 -3px 0 rgba(0,0,0,.5); border:1px solid #15151a; }
+  .deck::before,.deck::after{ content:""; position:absolute; top:14px; bottom:14px; width:26px; border-radius:8px;
+    background:repeating-linear-gradient(90deg,#4a2f1c,#3a2418 6px,#5a3a22 7px); box-shadow:inset 0 0 0 1px rgba(0,0,0,.4); }
+  .deck::before{ left:-10px; } .deck::after{ right:-10px; }
+
+  .toprow{ display:flex; align-items:center; gap:14px; padding:0 30px 16px; }
+  .title{ flex:1; min-width:0; }
+  .title b{ display:block; font-size:20px; font-weight:700; letter-spacing:.2px; }
+  .title span{ font-size:12px; color:#a49a86; }
+  .badge{ font-size:10px; letter-spacing:2px; text-transform:uppercase; color:#ffb347; border:1px solid rgba(255,179,71,.4); padding:4px 9px; border-radius:6px; }
+  .power{ width:10px; height:10px; border-radius:50%; background:#5ad1a0; box-shadow:0 0 12px #5ad1a0; }
+
+  .window{ margin:0 30px; height:190px; border-radius:12px; position:relative; overflow:hidden;
+    background:linear-gradient(180deg,#141418,#0c0c10); box-shadow:inset 0 3px 10px rgba(0,0,0,.8),inset 0 0 0 1px rgba(255,255,255,.06); }
+  .window::after{ content:""; position:absolute; inset:0; background:linear-gradient(180deg,rgba(255,255,255,.10),transparent 30%,transparent 70%,rgba(0,0,0,.4)); pointer-events:none; }
+  .tape{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:66%; height:74px; border-radius:8px;
+    background:linear-gradient(180deg,#3a2a1c,#241812); box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),0 6px 16px rgba(0,0,0,.5); }
+  .reel{ position:absolute; top:50%; width:118px; height:118px; border-radius:50%; transform:translateY(-50%);
+    background:conic-gradient(from 0deg,#2a2a30,#3a3a44,#2a2a30,#3a3a44,#2a2a30); box-shadow:inset 0 0 0 6px #1a1a1f,inset 0 0 0 8px #2c2c34,0 6px 18px rgba(0,0,0,.6); }
+  .reel.l{ left:38px; } .reel.r{ right:38px; }
+  .reel::before{ content:""; position:absolute; inset:22px; border-radius:50%; background:radial-gradient(circle,#3a3a44,#17171c 70%); box-shadow:inset 0 0 0 2px rgba(255,255,255,.06); }
+  .reel::after{ content:""; position:absolute; inset:50%; width:0; height:0; }
+  .spokes{ position:absolute; inset:0; border-radius:50%; animation:spin 2.4s linear infinite; animation-play-state:paused; }
+  .spokes i{ position:absolute; left:50%; top:50%; width:3px; height:44px; margin-left:-1.5px; margin-top:-44px; transform-origin:50% 100%;
+    background:linear-gradient(180deg,#6a6a78,#3a3a44); border-radius:2px; }
+  .spokes i:nth-child(2){ transform:rotate(60deg); } .spokes i:nth-child(3){ transform:rotate(120deg); }
+  .spokes i:nth-child(4){ transform:rotate(180deg); } .spokes i:nth-child(5){ transform:rotate(240deg); } .spokes i:nth-child(6){ transform:rotate(300deg); }
+  .playing .spokes{ animation-play-state:running; }
+  .playing .reel.r .spokes{ animation-duration:1.7s; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .hub{ position:absolute; inset:34px; border-radius:50%; background:radial-gradient(circle at 40% 35%,#4a4a56,#202027 70%); box-shadow:inset 0 0 0 3px #15151a; }
+
+  .bottom{ display:flex; gap:18px; padding:18px 30px 4px; align-items:center; }
+  .counter{ font-family:ui-monospace,monospace; font-size:26px; letter-spacing:3px; color:#ffb347; background:#0c0c10; padding:8px 14px; border-radius:8px;
+    box-shadow:inset 0 2px 8px rgba(0,0,0,.8); text-shadow:0 0 10px rgba(255,179,71,.5); }
+  .transport{ display:flex; gap:8px; }
+  .btn{ width:56px; height:44px; border-radius:8px; display:grid; place-items:center; color:#d8d2c4;
+    background:linear-gradient(180deg,#3c3c46,#22222a); box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 4px 10px rgba(0,0,0,.5); font-size:17px; transition:.12s; }
+  .btn:hover{ background:linear-gradient(180deg,#484854,#2a2a34); }
+  .btn:active,.btn.on{ transform:translateY(2px); box-shadow:inset 0 2px 6px rgba(0,0,0,.7); color:#ffb347; }
+  .btn svg{ width:20px; height:20px; }
+  .vu{ display:flex; gap:14px; margin-left:auto; }
+  .meter{ width:96px; height:56px; border-radius:8px; background:linear-gradient(180deg,#e8e2d4,#c9c2b2); position:relative; overflow:hidden; box-shadow:inset 0 2px 6px rgba(0,0,0,.4); }
+  .meter .scale{ position:absolute; inset:0; }
+  .meter .tick{ position:absolute; bottom:8px; left:50%; width:1px; height:6px; background:#2a2a1a; transform-origin:50% 34px; }
+  .meter .needle{ position:absolute; bottom:8px; left:50%; width:2px; height:34px; background:#c0392b; transform-origin:50% 100%; transform:translateX(-1px) rotate(-40deg); border-radius:2px; }
+  .meter .lbl{ position:absolute; bottom:3px; left:50%; transform:translateX(-50%); font-size:8px; color:#5a5a44; letter-spacing:1px; }
+  .side{ display:flex; gap:12px; align-items:center; }
+  .knob{ width:34px; height:34px; border-radius:50%; background:radial-gradient(circle at 35% 30%,#4a4a56,#1c1c22 70%); box-shadow:inset 0 0 0 2px #15151a,0 3px 8px rgba(0,0,0,.5); position:relative; }
+  .knob::after{ content:""; position:absolute; left:50%; top:6px; width:2px; height:10px; background:#ffb347; transform:translateX(-50%) rotate(var(--r,0deg)); transform-origin:50% 11px; border-radius:2px; }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+  <div class="toprow">
+    <span class="power"></span>
+    <div class="title"><b id="t">Red Thread</b><span id="a">Mira Vale — Forms of Silence</span></div>
+    <span class="badge">Type II · Chrome</span>
+  </div>
+  <div class="window">
+    <div class="tape"></div>
+    <div class="reel l"><div class="spokes"><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="hub"></div></div>
+    <div class="reel r"><div class="spokes"><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="hub"></div></div>
+  </div>
+  <div class="bottom">
+    <div class="counter" id="counter">0000</div>
+    <div class="transport">
+      <button class="btn" id="rew" title="Rewind"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 6v12L3 12zM21 6v12l-8-6z"/></svg></button>
+      <button class="btn on" id="play" title="Play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg></button>
+      <button class="btn" id="stop" title="Stop"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></button>
+      <button class="btn" id="ff" title="Fast forward"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 6v12l8-6zM3 6v12l8-6z"/></svg></button>
+    </div>
+    <div class="vu">
+      <div class="meter"><div class="scale"></div><div class="needle" id="nl"></div><div class="lbl">L</div></div>
+      <div class="meter"><div class="scale"></div><div class="needle" id="nr"></div><div class="lbl">R</div></div>
+    </div>
+    <div class="side">
+      <div class="knob" style="--r:-30deg"></div><div class="knob" style="--r:40deg"></div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  "use strict";
+  var deck=document.getElementById("deck"), play=document.getElementById("play");
+  var playing=true, pos=0, dur=258, counter=document.getElementById("counter");
+  var nl=document.getElementById("nl"), nr=document.getElementById("nr");
+  /* VU scale ticks */
+  document.querySelectorAll(".meter .scale").forEach(function(s){
+    for(var i=0;i<=10;i++){ var t=document.createElement("div"); t.className="tick"; t.style.transform="translateX(-1px) rotate("+(-50+i*10)+"deg)"; s.appendChild(t); }
+  });
+  play.addEventListener("click",function(){ playing=!playing; deck.classList.toggle("playing",playing); play.classList.toggle("on",playing); });
+  document.getElementById("stop").addEventListener("click",function(){ playing=false; deck.classList.remove("playing"); play.classList.remove("on"); pos=0; });
+  function fmt(n){ return String(Math.floor(n)%10000).padStart(4,"0"); }
+  var t0=performance.now();
+  function loop(ts){
+    requestAnimationFrame(loop);
+    var dt=Math.min(48,ts-(loop._p||ts)); loop._p=ts;
+    if(playing){ pos+=dt/1000; if(pos>dur) pos=0; }
+    counter.textContent=fmt(pos*100);
+    var lv=playing? 0.5+0.5*Math.abs(Math.sin(ts/260)) * (0.6+0.4*Math.sin(ts/90)) : 0.02;
+    var rv=playing? 0.5+0.5*Math.abs(Math.sin(ts/300+1.2))*(0.6+0.4*Math.sin(ts/110)) : 0.02;
+    nl.style.transform="translateX(-1px) rotate("+(-50+lv*70)+"deg)";
+    nr.style.transform="translateX(-1px) rotate("+(-50+rv*70)+"deg)";
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+[
+  {
+    "file": "hero-lovable.html",
+    "title": "Lovable · Editorial Red",
+    "theme": "lovable-red",
+    "accent": "hsl(2 76% 54%)",
+    "bg": "#0a0a0b",
+    "panel": "#111112",
+    "text": "#f4f4f5"
+  },
+  {
+    "file": "browse-brutalist.html",
+    "title": "Brutalist Paper",
+    "theme": "brutalist",
+    "accent": "hsl(22 100% 50%)",
+    "bg": "#e9e6dd",
+    "panel": "#fbfaf6",
+    "text": "#111111"
+  },
+  {
+    "file": "stats-blueprint.html",
+    "title": "Blueprint",
+    "theme": "blueprint",
+    "accent": "hsl(210 84% 60%)",
+    "bg": "#0c1a2b",
+    "panel": "#102842",
+    "text": "#d6e9ff"
+  },
+  {
+    "file": "immersive-cyber.html",
+    "title": "Cyber Neon",
+    "theme": "cyber",
+    "accent": "hsl(300 90% 62%)",
+    "bg": "#05040a",
+    "panel": "#0c0a16",
+    "text": "#eae6ff"
+  },
+  {
+    "file": "signal-terminal.html",
+    "title": "Terminal Green",
+    "theme": "terminal",
+    "accent": "hsl(130 72% 58%)",
+    "bg": "#080c08",
+    "panel": "#0e160e",
+    "text": "#c6f7cd"
+  },
+  {
+    "file": "album-echodark.html",
+    "title": "Echo · Dark Glass",
+    "theme": "echo-dark",
+    "accent": "hsl(77 70% 64%)",
+    "bg": "#07070c",
+    "panel": "#12121c",
+    "text": "#eef0fa"
+  },
+  {
+    "file": "dashboard-sunset.html",
+    "title": "Sunset Neon",
+    "theme": "sunset",
+    "accent": "hsl(330 84% 64%)",
+    "bg": "#170d1f",
+    "panel": "#241433",
+    "text": "#fdeaf6"
+  },
+  {
+    "file": "compact-mono.html",
+    "title": "Mono Slate",
+    "theme": "mono",
+    "accent": "hsl(0 0% 96%)",
+    "bg": "#111112",
+    "panel": "#1a1a1c",
+    "text": "#ededf0"
+  },
+  {
+    "file": "settings-highcontrast.html",
+    "title": "High Contrast",
+    "theme": "high-contrast",
+    "accent": "hsl(52 100% 55%)",
+    "bg": "#000000",
+    "panel": "#000000",
+    "text": "#ffffff"
+  },
+  {
+    "file": "article-paper.html",
+    "title": "Paper Light",
+    "theme": "paper",
+    "accent": "hsl(245 66% 56%)",
+    "bg": "#f4f1ea",
+    "panel": "#ffffff",
+    "text": "#1a1a1a"
+  },
+  {
+    "file": "depth-orb.html",
+    "title": "Depth · Orb",
+    "theme": "echo-dark",
+    "accent": "hsl(77 70% 64%)",
+    "bg": "#07070c",
+    "panel": "#12121c",
+    "text": "#eef0fa"
+  },
+  {
+    "file": "depth-blob.html",
+    "title": "Depth · Blob",
+    "theme": "sunset",
+    "accent": "hsl(330 84% 64%)",
+    "bg": "#170d1f",
+    "panel": "#241433",
+    "text": "#fdeaf6"
+  },
+  {
+    "file": "depth-vinyl.html",
+    "title": "Depth · Vinyl",
+    "theme": "terminal",
+    "accent": "hsl(130 72% 58%)",
+    "bg": "#080c08",
+    "panel": "#0e160e",
+    "text": "#c6f7cd"
+  },
+  {
+    "file": "depth-mixed.html",
+    "title": "Depth · Mixed",
+    "theme": "blueprint",
+    "accent": "hsl(210 84% 60%)",
+    "bg": "#0c1a2b",
+    "panel": "#102842",
+    "text": "#d6e9ff"
+  },
+  {
+    "file": "immersive-neon.html",
+    "title": "Neon Dual",
+    "theme": "neon",
+    "accent": "hsl(186 95% 58%)",
+    "bg": "#04070a",
+    "panel": "#0a121c",
+    "text": "#e6faff"
+  },
+  {
+    "file": "immersive-neon-vinyl.html",
+    "title": "Neon · Vinyl",
+    "theme": "neon",
+    "accent": "hsl(186 95% 58%)",
+    "bg": "#04070a",
+    "panel": "#0a121c",
+    "text": "#e6faff"
+  },
+  {
+    "file": "immersive-neon-mixed.html",
+    "title": "Neon · Mixed",
+    "theme": "neon",
+    "accent": "hsl(186 95% 58%)",
+    "bg": "#04070a",
+    "panel": "#0a121c",
+    "text": "#e6faff"
+  },
+  {
+    "file": "mashup-soft.html",
+    "title": "Mashup · Soft UI",
+    "theme": "soft",
+    "accent": "hsl(243 75% 58%)",
+    "bg": "#e8ebf2",
+    "panel": "#e8ebf2",
+    "text": "#2b2f45"
+  },
+  {
+    "file": "mashup-hud.html",
+    "title": "Mashup · Glass HUD",
+    "theme": "hud",
+    "accent": "hsl(196 92% 60%)",
+    "bg": "#060b16",
+    "panel": "#0d1728",
+    "text": "#dcecff"
+  },
+  {
+    "file": "mashup-wove.html",
+    "title": "Mashup · WOVE",
+    "theme": "wove",
+    "accent": "hsl(0 0% 8%)",
+    "bg": "#f2f1ed",
+    "panel": "#f2f1ed",
+    "text": "#111111"
+  },
+  {
+    "file": "mashup-crypto.html",
+    "title": "Mashup · Crypto",
+    "theme": "light",
+    "accent": "hsl(77 68% 50%)",
+    "bg": "#eef0f6",
+    "panel": "#ffffff",
+    "text": "#14162a"
+  },
+  {
+    "file": "signature.html",
+    "title": "Signature",
+    "theme": "signature",
+    "accent": "hsl(77 88% 58%)",
+    "bg": "#08090f",
+    "panel": "#0e1119",
+    "text": "#eaf0ff"
+  }
+]

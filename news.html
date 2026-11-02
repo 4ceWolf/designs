@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Echo — daily edition</title>
+<style>
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{ background:#e7e3d6; color:#15140f; font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif; -webkit-font-smoothing:antialiased; }
+  .paper{ max-width:1180px; margin:0 auto; padding:26px 34px 60px; }
+  .masthead{ text-align:center; border-bottom:3px double #15140f; padding-bottom:10px; }
+  .masthead h1{ margin:0; font-size:clamp(46px,9vw,104px); letter-spacing:-2px; font-weight:900; font-family:"Times New Roman",Georgia,serif; }
+  .masthead .meta{ display:flex; justify-content:space-between; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; border-top:1px solid #15140f; margin-top:8px; padding-top:6px; }
+  .kicker{ text-align:center; font-size:12px; letter-spacing:4px; text-transform:uppercase; margin:10px 0 18px; color:#8a1414; font-weight:700; }
+  .grid{ display:grid; grid-template-columns:1.7fr 1fr; gap:26px; }
+  @media(max-width:820px){ .grid{ grid-template-columns:1fr; } }
+  h2.lead{ font-size:clamp(30px,5vw,58px); line-height:.98; margin:0 0 8px; letter-spacing:-1px; font-weight:900; }
+  .deck{ font-size:16px; font-style:italic; color:#3a382e; margin:0 0 14px; }
+  .byline{ font-size:11px; letter-spacing:2px; text-transform:uppercase; border-top:1px solid #15140f; border-bottom:1px solid #15140f; padding:5px 0; margin-bottom:14px; display:flex; justify-content:space-between; }
+  .art{ width:100%; aspect-ratio:16/9; position:relative; background:linear-gradient(150deg,#3a2a3a,#6a3a4a 50%,#2a2a3a); filter:grayscale(1) contrast(1.2); margin-bottom:8px; }
+  .art::after{ content:""; position:absolute; inset:0; background-image:radial-gradient(#000 30%,transparent 32%); background-size:4px 4px; opacity:.55; mix-blend-mode:multiply; }
+  .art.b{ background:linear-gradient(150deg,#2a3a2a,#4a6a3a 50%,#1a2a1a); }
+  .art.c{ background:linear-gradient(150deg,#2a2a3a,#3a4a6a 50%,#1a1a2a); }
+  .cap{ font-size:11px; color:#5a5648; font-style:italic; margin:0 0 16px; }
+  .cols{ column-count:2; column-gap:22px; font-size:14.5px; line-height:1.5; text-align:justify; }
+  @media(max-width:520px){ .cols{ column-count:1; } }
+  .cols p{ margin:0 0 10px; }
+  .cols p:first-child::first-letter{ float:left; font-size:56px; line-height:.8; padding:4px 8px 0 0; font-weight:900; color:#8a1414; }
+  .rail h3{ font-size:13px; letter-spacing:3px; text-transform:uppercase; border-bottom:2px solid #15140f; padding-bottom:5px; margin:0 0 12px; }
+  .chart{ list-style:none; margin:0 0 26px; padding:0; counter-reset:c; }
+  .chart li{ counter-increment:c; display:flex; align-items:baseline; gap:10px; padding:7px 0; border-bottom:1px solid #c9c4b2; font-size:14px; }
+  .chart li::before{ content:counter(c); font-family:"Times New Roman",serif; font-size:22px; font-weight:900; width:26px; }
+  .chart li b{ flex:1; } .chart li span{ color:#5a5648; font-size:12px; }
+  .chart li .up{ color:#1e6b3a; } .chart li .dn{ color:#8a1414; }
+  .npbox{ border:2px solid #15140f; padding:14px; margin-bottom:26px; background:#f2efe4; }
+  .npbox .lab{ font-size:10px; letter-spacing:3px; text-transform:uppercase; color:#8a1414; }
+  .npbox b{ display:block; font-size:22px; margin:6px 0 2px; }
+  .npbox .eq{ display:flex; gap:2px; align-items:flex-end; height:22px; margin-top:8px; }
+  .npbox .eq i{ width:3px; background:#15140f; animation:eq .9s ease-in-out infinite; }
+  @keyframes eq{ 0%,100%{ transform:scaleY(.3); } 50%{ transform:scaleY(1); } }
+  .lower{ border-top:3px double #15140f; margin-top:28px; padding-top:20px; display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+  @media(max-width:820px){ .lower{ grid-template-columns:1fr; } }
+  .lower article h4{ font-size:20px; margin:0 0 6px; line-height:1.05; }
+  .lower article p{ font-size:13px; line-height:1.5; color:#3a382e; margin:8px 0 0; }
+  .lower .art{ aspect-ratio:4/3; margin-bottom:10px; }
+  .rule{ height:1px; background:#15140f; margin:10px 0; }
+</style>
+</head>
+<body>
+<div class="paper">
+  <header class="masthead">
+    <h1>THE ECHO</h1>
+    <div class="meta"><span>Monday, 14 September 2026</span><span>Local listening · No. 1,204</span><span>Price: one track</span></div>
+  </header>
+  <div class="kicker">★ Now Playing · Forms of Silence ★</div>
+
+  <div class="grid">
+    <main>
+      <article>
+        <h2 class="lead">Red Thread unspools a quiet, luminous hour</h2>
+        <p class="deck">Mira Vale's new record trades bombast for patience — and finds something enormous in the hush.</p>
+        <div class="byline"><span>By the Listening Desk</span><span>4 min 18 sec</span></div>
+        <div class="art"></div>
+        <p class="cap">The record's centrepiece drifts between tape hiss and cathedral reverb.</p>
+        <div class="cols">
+          <p>There is a moment, roughly two minutes in, when the low end simply stops — and the room keeps going. It is the kind of trick that reads as an accident until it happens a second time, and then a third, and you understand it has been engineered all along.</p>
+          <p>Vale has always written in negative space, but here the negative space is the song. The arrangement resists the urge to fill: a single sustained tone, a brushed snare, a reverb tail that outlives its source. What could be empty instead feels attentive.</p>
+          <p>The album's arc is deliberately unhurried. Tracks bleed into one another without a seam, and the sequencing rewards a full listen over a shuffled one. It is music that assumes you have nowhere else to be.</p>
+          <p>By the closing minutes the record has circled back to its opening figure, altered by everything in between. It ends, appropriately, mid-breath — as if the next note were simply waiting for you to press play again.</p>
+        </div>
+      </article>
+    </main>
+
+    <aside class="rail">
+      <div class="npbox">
+        <div class="lab">On the turntable</div>
+        <b>Red Thread</b>
+        <div style="font-size:13px;color:#5a5648">Mira Vale — Forms of Silence</div>
+        <div class="eq" id="eq"></div>
+      </div>
+      <h3>The Charts</h3>
+      <ol class="chart">
+        <li><b>Red Thread</b><span class="up">▲ 2</span></li>
+        <li><b>Afterimage</b><span class="up">▲ 1</span></li>
+        <li><b>Still Water</b><span class="dn">▼ 1</span></li>
+        <li><b>Pale Distance</b><span class="up">▲ 4</span></li>
+        <li><b>Intervals</b><span class="dn">▼ 2</span></li>
+        <li><b>Soft Machines</b><span class="up">▲ 3</span></li>
+      </ol>
+      <h3>In Brief</h3>
+      <p style="font-size:13.5px;line-height:1.5;color:#3a382e;margin:0 0 10px"><b>North Index</b> announce a reissue of <i>Intervals</i>, remastered at half-speed for the first time.</p>
+      <div class="rule"></div>
+      <p style="font-size:13.5px;line-height:1.5;color:#3a382e;margin:10px 0 0"><b>Ana Lune</b> will perform <i>Soft Machines</i> in full at a single seated show this winter.</p>
+    </aside>
+  </div>
+
+  <section class="lower">
+    <article><div class="art b"></div><h4>A quieter kind of loud</h4><p>Why the year's heaviest records are the ones that whisper. A survey of dynamic restraint across the new ambient wave.</p></article>
+    <article><div class="art c"></div><h4>The room is the instrument</h4><p>Engineers on capturing reverb that behaves — and why tape still wins for tails.</p></article>
+    <article><div class="art"></div><h4>Records of the month</h4><p>Six titles worth clearing an evening for, from drone to chamber pop, reviewed without mercy.</p></article>
+  </section>
+</div>
+<script>
+  var eq=document.getElementById("eq");
+  for(var i=0;i<14;i++){ var b=document.createElement("i"); b.style.height=(20+Math.random()*80)+"%"; b.style.animationDelay=(-(i%7)*0.13)+"s"; eq.appendChild(b); }
+</script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Reel — full-bleed scroll</title>
+<style>
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; margin:0; }
+  body{ background:#050506; color:#fff; overflow:hidden; font:14px/1.4 "Inter",system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+  .feed{ position:fixed; inset:0; overflow-y:scroll; scroll-snap-type:y mandatory; scrollbar-width:none; }
+  .feed::-webkit-scrollbar{ display:none; }
+  .panel{ height:100vh; scroll-snap-align:start; position:relative; overflow:hidden; display:flex; align-items:flex-end; }
+  .panel .art{ position:absolute; inset:0; background-size:cover; transform:scale(1.05); }
+  .panel .scrim{ position:absolute; inset:0; background:linear-gradient(0deg,rgba(4,4,6,.92) 6%,transparent 46%),linear-gradient(180deg,rgba(4,4,6,.6),transparent 26%); }
+  .panel .body{ position:relative; z-index:2; padding:0 34px 130px; width:100%; }
+  .panel .idx{ font-size:11px; letter-spacing:3px; color:#8b93a7; }
+  .panel h2{ margin:8px 0 6px; font-size:clamp(38px,7vw,76px); font-weight:800; letter-spacing:-2px; line-height:.95; }
+  .panel .artist{ font-size:17px; color:#c3cad8; }
+  .panel .tags{ display:flex; gap:8px; margin-top:14px; }
+  .panel .tags span{ font-size:10.5px; letter-spacing:1px; text-transform:uppercase; padding:4px 10px; border-radius:20px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.16); }
+  .panel .eq{ position:absolute; right:34px; bottom:150px; display:flex; gap:3px; align-items:flex-end; height:60px; z-index:2; }
+  .panel .eq i{ width:4px; border-radius:2px; background:linear-gradient(180deg,#fff,rgba(255,255,255,.3)); animation:eq 1s ease-in-out infinite; }
+  @keyframes eq{ 0%,100%{ transform:scaleY(.25); } 50%{ transform:scaleY(1); } }
+  .brand{ position:fixed; top:0; left:0; right:0; z-index:5; padding:20px 30px; display:flex; align-items:center; justify-content:space-between; font-size:11px; letter-spacing:3px; text-transform:uppercase; }
+  .brand .mark{ font-weight:800; letter-spacing:6px; }
+  .brand .dots{ display:flex; gap:6px; }
+  .brand .dots i{ width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.3); }
+  .brand .dots i.on{ background:#fff; width:18px; border-radius:3px; }
+  .dock{ position:fixed; left:50%; transform:translateX(-50%); bottom:22px; z-index:6; width:min(680px,92vw);
+    background:rgba(14,14,18,.72); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+    border:1px solid rgba(255,255,255,.12); border-radius:20px; padding:12px 16px; display:flex; align-items:center; gap:14px; }
+  .dock .thumb{ width:44px; height:44px; border-radius:10px; background-size:cover; flex:0 0 auto; box-shadow:inset 0 0 0 1px rgba(255,255,255,.1); }
+  .dock .meta{ min-width:0; flex:1; }
+  .dock .meta b{ display:block; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .dock .meta span{ font-size:11px; color:#9aa2b2; }
+  .dock .bar{ flex:1.4; height:4px; border-radius:4px; background:rgba(255,255,255,.16); overflow:hidden; }
+  .dock .bar i{ display:block; height:100%; width:0; background:#fff; }
+  .dock .t{ font-size:11px; color:#9aa2b2; font-variant-numeric:tabular-nums; }
+  .dock .btn{ width:40px; height:40px; border-radius:50%; display:grid; place-items:center; background:#fff; color:#0a0a0c; flex:0 0 auto; }
+  .dock .btn svg{ width:18px; height:18px; }
+  .dock .skip{ width:32px; height:32px; border-radius:50%; display:grid; place-items:center; color:#c3cad8; flex:0 0 auto; }
+  .dock .skip svg{ width:16px; height:16px; }
+</style>
+</head>
+<body>
+<div class="brand">
+  <span class="mark">Reel</span>
+  <div class="dots" id="dots"></div>
+</div>
+<div class="feed" id="feed"></div>
+<div class="dock">
+  <div class="thumb" id="dthumb"></div>
+  <div class="meta"><b id="dtitle">Red Thread</b><span id="dartist">Mira Vale</span></div>
+  <button class="skip"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5.5h2.4v13H7zM19 6v12l-8.5-6z"/></svg></button>
+  <button class="btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg></button>
+  <button class="skip"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14.6 5.5H17v13h-2.4zM5 6l8.5 6L5 18z"/></svg></button>
+  <div class="bar"><i id="dbar"></i></div>
+  <span class="t" id="dtime">0:00 / 4:18</span>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var TRACKS=[["Red Thread","Mira Vale","Forms of Silence"],["Afterimage","North Index","Intervals"],["Still Water","Ana Lune","Soft Machines"],["Pale Distance","Common Field","Contour Lines"],["Nightbook","Ludovico Einaudi","Nightbook"],["Kerala","Bonobo","Migration"]];
+  var HUES=[[2,76,54],[190,72,50],[150,60,44],[260,70,58],[40,80,56],[320,66,56]];
+  function art(h){ return "radial-gradient(65% 70% at 28% 22%, hsl("+h[0]+" "+h[1]+"% "+(h[2]+16)+"%), transparent 62%),"+
+    "radial-gradient(60% 70% at 76% 74%, hsl("+((h[0]+40)%360)+" "+h[1]+"% "+(h[2]-6)+"%), transparent 64%),"+
+    "linear-gradient(150deg, hsl("+h[0]+" "+h[1]+"% "+h[2]+"%), hsl("+((h[0]+60)%360)+" "+h[1]+"% "+(h[2]-24)+"%))"; }
+  var feed=document.getElementById("feed"), dots=document.getElementById("dots");
+  TRACKS.forEach(function(t,i){
+    var p=document.createElement("section"); p.className="panel";
+    var eq=""; for(var k=0;k<12;k++) eq+='<i style="height:'+(20+Math.random()*80)+'%;animation-delay:'+(-(k%6)*0.14)+'s"></i>';
+    p.innerHTML='<div class="art" style="background-image:'+art(HUES[i])+'"></div><div class="scrim"></div>'+
+      '<div class="eq">'+eq+'</div>'+
+      '<div class="body"><div class="idx">'+String(i+1).padStart(2,"0")+' / '+String(TRACKS.length).padStart(2,"0")+'</div>'+
+      '<h2>'+t[0]+'</h2><div class="artist">'+t[1]+' · '+t[2]+'</div>'+
+      '<div class="tags"><span>Lossless</span><span>24-bit</span><span>96 kHz</span></div></div>';
+    feed.appendChild(p);
+    var d=document.createElement("i"); dots.appendChild(d);
+  });
+  var dtitle=document.getElementById("dtitle"), dartist=document.getElementById("dartist"), dthumb=document.getElementById("dthumb");
+  var dbar=document.getElementById("dbar"), dtime=document.getElementById("dtime");
+  var current=0;
+  function setCurrent(i){
+    current=i;
+    var t=TRACKS[i];
+    dtitle.textContent=t[0]; dartist.textContent=t[1]; dthumb.style.backgroundImage=art(HUES[i]);
+    Array.prototype.forEach.call(dots.children,function(d,k){ d.classList.toggle("on",k===i); });
+    pos=0;
+  }
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting) setCurrent(Array.prototype.indexOf.call(feed.children,e.target)); });
+  },{threshold:0.6});
+  Array.prototype.forEach.call(feed.children,function(p){ io.observe(p); });
+
+  var dur=258000, pos=0, t0=performance.now();
+  function fmt(ms){ var s=Math.floor(ms/1000),m=Math.floor(s/60); return m+":"+String(s%60).padStart(2,"0"); }
+  function loop(ts){
+    requestAnimationFrame(loop);
+    var dt=Math.min(48,ts-(loop._p||ts)); loop._p=ts;
+    pos+=dt*16; if(pos>dur){ pos=0; var n=(current+1)%TRACKS.length; feed.children[n].scrollIntoView({behavior:"smooth"}); }
+    dbar.style.width=(pos/dur*100)+"%";
+    dtime.textContent=fmt(pos)+" / "+fmt(dur);
+  }
+  requestAnimationFrame(loop);
+  setCurrent(0);
+})();
+</script>
+</body>
+</html>
